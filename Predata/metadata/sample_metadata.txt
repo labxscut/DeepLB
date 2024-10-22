@@ -1,0 +1,15 @@
+Run	Group	Sample type	Cohort
+CTR101	Healthy	cfDNA	CUHK
+CTR103	Healthy	cfDNA	CUHK
+CTR104	Healthy	cfDNA	CUHK
+CTR107	Healthy	cfDNA	CUHK
+CTR108	Healthy	cfDNA	CUHK
+CTR110	Healthy	cfDNA	CUHK
+CTR111	Healthy	cfDNA	CUHK
+HOT151	Tumor	cfDNA	CUHK
+HOT156	Tumor	cfDNA	CUHK
+HOT159	Tumor	cfDNA	CUHK
+HOT162	Tumor	cfDNA	CUHK
+HOT164	Tumor	cfDNA	CUHK
+HOT167	Tumor	cfDNA	CUHK
+HOT170	Tumor	cfDNA	CUHK
