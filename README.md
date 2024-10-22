@@ -1,8 +1,9 @@
 # DeepBL
 ## Overview
-We introduce a novel Deep-Learning model, DeepLB, which uniquely utilizes Pseudo-fragment data for early cancer diagnosis via liquid biopsy. DeepLB model consists of four key modules: marker selection module, Methylation Microarray to Sequence data converter module (mMTS), deep learning module (ResTran) and estimation module. The contribution of DeepLB is as follows: (1) DeepLB’s mMTS integrates genome-wide methylation microarray data with reference genome information to generate accurate, versatile, and generalizable read-level pseudo methylation sequencing data from real-world sources with demonstrated informativeness. (2) ResTran combines residual networks and transformer to analyze nucleotide composition and methylation patterns, enabling the identification of tumor-derived DNA fragments from pseudo-fragment data. (3) Furthermore, DeepLB can be easily adapted to various types of methylation data and different cancer types. The workflow in DeepLB is illustrated in the figure below.
+In this study, we introduce our novel deep learning model, DeepLB, developed for early cancer detection through liquid biopsy. This model utilizes pseudo-fragment data generated from 450K methylation array data of tumor tissues, alongside cfDNA whole-genome bisulfite sequencing (WGBS) data from healthy donors, to enhance diagnostic capabilities. DeepLB consists of four key modules: feature selection, methylation Microarray-To-Sequence data converter (mMTS), deep learning model (ResTran), and cancer score estimation. We analyzed cancer-specific features from tumor tissue and healthy plasma WGBS data, generating tumor pseudo-fragment data through the mMTS converter. The ResTran model, which integrates residual networks with Transformer architecture, accurately identifies tumor-derived DNA fragments from cfDNA methylation sequencing data. The workflow in DeepLB is illustrated in the figure below.
+---
 ![Alt text](png1.png)
-
+---
 ## Installation
 ```R
 install.packages('devtools')
