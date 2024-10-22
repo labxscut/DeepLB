@@ -1,0 +1,140 @@
+// calc_reads_prob.cpp
+// Given a reads-binning file (including methylation data) and a set of tissue files (each file is a tissue), we calculate the probability of each read belonging to the tissue.
+//
+// tissue file could be
+//   (1) position-specific
+//   (2) bin-specific with each bin a single value
+//   (3) bin-specific with each bin a distribution
+//
+#include <cstdlib>
+#include <vector>
+#include <map>
+#include <string>
+#include <climits>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <cassert>
+#include <boost/algorithm/string.hpp>
+#include <boost/assign.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include "my_getopt-1.5/getopt.h"
+#include "utils.h"
+
+using namespace std;
+using namespace boost;
+
+// Global variables
+string reads_binning_file="";
+string tissues_list_file="";
+string tissue_data_type="bin_single_value"; // default is "bin_single_value"
+bool gzip_input=false;
+
+/*-----------------------------------
+command line parser's data structure
+-----------------------------------*/
+struct option longopts[] =
+{
+	/* name,                      has_arg,          flag, val */ /* longind */
+	{ "help",                           no_argument,       0,   'h' }, /*       0 */
+	{ "input_reads_binning_file",       required_argument, 0,   'r' }, /*       1 */
+	{ "input_file_of_tissues_list",     required_argument, 0,   't' }, /*       1 */
+	{ "tissue_data_type",               required_argument, 0,   'T' }, /*       3 */
+	{ "gz_input",                       no_argument,       0,   'z' }, /*       3 */
+	/* end-of-list marker */
+	{ 0, 0, 0, 0 }
+};
+
+char *shortopts = "hr:t:T:z"; /* short options string */
+int longind = 0; /* long option list index */
+
+void print_usage() {
+	cerr << "Calculate the probability of each read that is originated from each tissue. The output is a probability matrix (lines are reads and columns are tissues) with header line denoting each tissue's name." << endl << endl;
+	cerr << "USAGE: calc_reads_prob [options] -r [input reads binning file] -t [input file of tissues list]" << endl << endl;
+	cerr << "   Options:" << endl;
+	cerr << "     -T [data type]:  tissue data type: bin_single_value (default, and the tissue file is values_of_bins)." << endl;
+	cerr << "     -z :  all input files (i.e., reads file and tissues files) are gzipped." << endl;
+	cerr << endl;
+    cerr << "version 1.0, January 21, 2016" << endl;
+    cerr << "By Wenyuan Li" << endl;
+	cerr << endl;
+}
+
+void parse_command_line(int argc, char * argv[])
+{
+	int opt; /* during argument parsing, opt contains the return value from getopt() */
+	int longind = 0; /* long option list index */
+	/* parse all options from the command line */
+	while ((opt=getopt_long(argc, argv, shortopts, longopts, &longind)) != -1) {
+		switch (opt) {
+			case 'h': /* --help */
+				print_usage(); /* 'parms_setting' is a global variable */
+				exit(EXIT_FAILURE);
+				break;
+			case 'r': /* --reads_binning_file */
+				reads_binning_file = optarg;
+				break;
+			case 't': /* --input_file_of_tissues_list */
+				tissues_list_file = optarg;
+				break;
+			case 'T': /* --tissue_file_type */
+				tissue_data_type = optarg;
+				break;
+			case 'z': /* --gz_input */
+				gzip_input = true;
+				break;
+			default: /* something unexpected has happened */
+				cerr << endl << "Error: wrong parameters!" << endl << endl;
+				print_usage();
+				exit(EXIT_FAILURE);
+		}
+	}
+	if (reads_binning_file.empty()) {
+		cerr << endl << "Error: input reads binning file is required!" << endl << endl;
+		print_usage();
+		exit(EXIT_FAILURE);
+	}
+	if (tissues_list_file.empty()) {
+		cerr << endl << "Error: input file of tissues list is required!" << endl << endl;
+		print_usage();
+		exit(EXIT_FAILURE);
+	}
+	if (tissue_data_type.compare("bin_single_value")!=0) {
+		cerr << endl << "Error: tissue data type should take one of three values: bin_single_value!" << endl << endl;
+		print_usage();
+		exit(EXIT_FAILURE);
+	}
+}
+
+int main(int argc, char* argv[]) {
+	parse_command_line(argc, argv);
+
+	//cerr << "input reads binning file: " << reads_binning_file << endl;
+	//cerr << "file of tissues list: " << tissues_list_file << endl;
+	//cerr << "Are input files gzipped? " << gzip_input << endl;
+	//cerr << "tissue data type: " << tissue_data_type << endl;
+
+	if (tissue_data_type.compare("bin_single_value")==0) {
+		Bins2Values bins2values;
+		vector<string> tissue_names;
+		//
+		// value_file_of_bins format: a header line and the following lines are marker bins
+		//Column 1: marker_index, 1-based index. Only marker bins are included, those complementary bins do not appear in this file.
+		//Column 2: chr
+		//Column 3: start coordinate of bin (1-base)
+		//Column 4: end coordinate of bin (1-base). The range of the bin is [start, end)
+		//Column 5: marker_type. "I" is Marker_type_I, "II" is Marker_type_II, "-" is the complementary bin, only facilitating the searching.
+		//Column 6+: values for this marker (each column is a tissue)
+		//
+		// for example:
+		//marker_index	chr	start	end	marker_type	Liver	T-cells	B-cells	Neutrophils	Placenta
+		//1	chr1	855266	855766	II	0.472	0.848	0.607	0.298	0.144
+		//2	chr1	969796	970296	II	0.659	0.458	0.352	0.332	0.331
+		unsigned int value_column_start_index=6; // this is the first value's column index of the file "value_file_of_bins"
+		read_value_file_of_bins(tissues_list_file, gzip_input, value_column_start_index, bins2values, tissue_names);
+		calc_read_probability_by_bins2values(reads_binning_file, gzip_input, bins2values, tissue_names);
+	}
+
+}
+

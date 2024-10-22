@@ -1,0 +1,15 @@
+1. Instead of using EM algorithm, implement the grid-based searching optimization, when there are only two classes (normal and a tumor type).
+	(1) Use different biomarkers obtained by Shuli
+	(2) Use whole genome bins, like what I did last August
+
+2. A strategy: given two (or K) classes and a read, if the read probability belonging to all classes are all very high or very low, then we (1) discard it or (2) put it aside as the K+1 class (a new class). The latter is the semi-supervised EM algorithm.
+
+2. Use MATLAB to implement the semi-supervised EM algorithm
+
+3. Use white blood cells methylation profiles (of the same person) as a class:
+	(1) in tissue deconvolution, replace "Neutrophils" and "Lymphocytes" by buffy coat of the blood of the same person
+	(2) in cancer deconvolution, there are three classes: normal plasma class, buffy coat class of the same person, and a tumor type class
+
+4. Implement Shuli's method bny extracting the algorithm part of Shuli's Java codes.
+
+5. Implement Dennis Lo's unmehtylated bins percentage method: (a key step is to label each read as repetitive regions or not).

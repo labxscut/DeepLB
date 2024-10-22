@@ -1,0 +1,255 @@
+#include <cstdlib>
+#include <sstream>
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <vector>
+#include <string>
+#include <cassert>
+#include <boost/algorithm/string.hpp>
+#include <boost/assign.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include "matrix.h"
+#include "utils.h"
+
+using namespace std;
+using namespace boost;
+
+#include "template_utils.cpp"
+
+Matrix_Double::Matrix_Double(const unsigned int nrow_, const unsigned int ncol_, const double init_value)
+{
+	nrow = nrow_;
+	ncol = ncol_;
+	empty = false;
+	mat.reserve(nrow_);
+	for (int i=0; i<nrow; i++) {
+		vector<double> temp;
+		temp.reserve(ncol);
+		for (int j=0; j<ncol; j++)
+			temp.push_back(init_value);
+		mat.push_back( temp );
+	}
+	empty = mat.empty();
+}
+
+// a line represents a row of the matrix. Each element in this row is delimited by a TAB.
+void Matrix_Double::process_one_line_of_mat_file(string & line, int num_header_column)
+{
+	vector<string> items;
+	split(items, line, is_any_of("\t"));
+	vector<double> v;
+	for (int i=0; i<items.size(); i++) {
+		if (i<num_header_column) continue; // skip the first num_header_column header columns
+		v.push_back( atof(items[i].c_str()) );
+	}
+	mat.push_back( v );
+}
+
+Matrix_Double::Matrix_Double(const string & mat_file, const bool is_file_gzip=false,
+	bool header_line=false, int num_header_column=1)
+{
+	unsigned long i_line=0;
+	if (is_file_gzip) {
+		// input is a gzip file
+		ifstream fin(mat_file.c_str(), std::ios_base::in | std::ios_base::binary);
+		try {
+			boost::iostreams::filtering_istream in;
+			in.push(boost::iostreams::gzip_decompressor());
+			in.push(fin);
+			for(string line; getline(in, line); ) {
+				if (header_line) {
+					if (i_line==0) {
+						// skip the header line
+						i_line++;
+						continue;
+					}
+				}
+				if (line.empty()) {
+					// this is the last line of the file
+					break;
+				}
+				i_line++;
+				process_one_line_of_mat_file(line, num_header_column);
+			}
+		} catch(const boost::iostreams::gzip_error& e) {
+			cerr << "Error: catch gzip_error!" << endl;
+			cerr << e.what() << endl;
+			exit(EXIT_FAILURE);
+		}
+		fin.close();
+	} else {
+		// input is a plain text file
+		ifstream fin;
+		fin.open(mat_file.c_str());
+		if (fin.fail()){
+			cerr << "Error: Unable to open " << mat_file << " in Matrix_Double()" << endl;
+			exit(EXIT_FAILURE);
+		}
+		string line;
+		while (!fin.eof()) {
+			getline(fin, line);
+			//cerr << "Line: " << line << endl;
+			if (header_line) {
+				if (i_line==0) {
+					// skip the header line
+					i_line++;
+					continue;
+				}
+			}
+			if (line.empty()) {
+				// this is the last line of the file
+				break;
+			}
+			process_one_line_of_mat_file(line, num_header_column);
+			i_line++;
+		}
+		fin.close();
+	}
+	empty = mat.empty();
+	nrow = mat.size();
+	if (nrow>=1) ncol = mat[0].size();
+	else ncol = 0;
+}
+
+bool Matrix_Double::get_element(const int i, const int j, double & v)
+{
+	if (!empty) {
+		if (i<nrow && j<ncol) {
+			v = mat[i][j];
+			return true;
+		} else {
+			cerr << "Warning: i=" << i << " and j=" << j << " exceed matrix size!" << endl;
+			return false;
+		}
+	} else {
+		v = 0;
+		return false;
+	}
+}
+
+bool Matrix_Double::set_element(const int i, const int j, double v)
+{
+	if (!empty) {
+		if (i<nrow && j<ncol) {
+			mat[i][j] = v;
+			return true;
+		} else {
+			cerr << "Warning: i=" << i << " and j=" << j << " exceed matrix size!" << endl;
+			return false;
+		}
+	} else {
+		return false;
+	}
+}
+
+bool Matrix_Double::get_column_sum(const int j, double & v)
+{
+	if (!empty) {
+		if (j<ncol) {
+			v = 0;
+			for (int k=0; k<nrow; k++) {
+				v += mat[k][j];
+			}
+			return true;
+		} else {
+			cerr << "Warning: j=" << j << " exceeds matrix column size (" << ncol << ")!" << endl;
+			return false;
+		}
+	} else {
+		v = 0;
+		return false;
+	}
+}
+
+bool Matrix_Double::get_row_sum(const int i, double & v)
+{
+	if (!empty) {
+		if (i<nrow) {
+			v = 0;
+			for (int k=0; k<ncol; k++) {
+				v += mat[i][k];
+			}
+			return true;
+		} else {
+			cerr << "Warning: i=" << i << " exceeds matrix row size (" << nrow << ")!" << endl;
+			return false;
+		}
+	} else {
+		v = 0;
+		return false;
+	}
+}
+
+ostream & operator<<(ostream & os, Matrix_Double & mat)
+{
+	double v;
+	if (!mat.isempty()) {
+		for (int i=0; i<mat.get_row_num(); i++) {
+			int j;
+			for (j=0; j<mat.get_column_num()-1; j++) {
+				mat.get_element(i,j,v);
+				os << v << "\t";
+			}
+			mat.get_element(i,j,v);
+			os << v << endl;
+		}
+	}
+	return os;
+}
+
+// output: theta (model parameters), a vector with "ncol" elements.
+void em_supervise(Matrix_Double & p, int max_iter, vector<double> & theta)
+{
+	cout.precision(15);
+	cerr.precision(15);
+	unsigned int ncol = p.get_column_num();
+	unsigned int nrow = p.get_row_num();
+	if (theta.size() != ncol) {
+		cerr << "Warning (em_supervise): theta size (" << theta.size() << ") is inequal to the column number of matrix 'p' (" << p.get_column_num() << ")!" << endl;
+		return;
+	}
+	// initialize model parameters as uniform distribution
+	for (int j=0; j<ncol; j++) {
+		theta[j] = 1/(double)ncol;
+	}
+	// create and initialize q with the same size of p and with all elements initialized as 0
+	Matrix_Double q(nrow, ncol, 0);
+	for (int iter=0; iter<max_iter; iter++) {
+		// E-step: estimate q
+		double v1, v2;
+		for (int i=0; i<nrow; i++) {
+			double sum = 0;
+			for (int j=0; j<ncol; j++) {
+				p.get_element(i,j,v1);
+				v2 = theta[j]*v1;
+				q.set_element( i, j, v2 );
+				sum += v2;
+			}
+			for (int j=0; j<ncol; j++) {
+				q.get_element(i,j,v2);
+				v2 /= sum;
+				q.set_element( i, j, v2 );
+			}
+		}
+		// M-step: estimate theta
+		for (int j=0; j<ncol; j++) {
+			double sum=0;
+			for (int i=0; i<nrow; i++) {
+				q.get_element(i,j,v2);
+				sum += v2;
+			}
+			theta[j] = sum / nrow;
+		}
+	}
+}
+
+void em_semisupervise(Matrix_Double & p)
+{
+}
+
+void em_unsupervise(Matrix_Double & p)
+{
+}
+

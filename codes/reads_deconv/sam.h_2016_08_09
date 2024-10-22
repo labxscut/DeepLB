@@ -1,0 +1,124 @@
+#ifndef SAM_H
+#define SAM_H
+
+#include <sstream>
+#include <iostream>
+#include <map>
+#include <vector>
+#include <string>
+#include "data_types.h"
+
+using namespace std;
+
+#define MAX_LINE_CHAR 10240
+
+// copied from "htslib/sam.h"
+/*! @abstract the read is paired in sequencing, no matter whether it is mapped in a pair */
+#define BAM_FPAIRED        1
+/*! @abstract the read is mapped in a proper pair */
+#define BAM_FPROPER_PAIR   2
+/*! @abstract the read itself is unmapped; conflictive with BAM_FPROPER_PAIR */
+// Bit 0x4 is the only reliable place to tell whether the read is unmapped. If 0x4 is set, no assumptions can be made about RNAME, POS, CIGAR, MAPQ, and bits 0x2, 0x100, and 0x800.
+#define BAM_FUNMAP         4
+/*! @abstract the mate is unmapped */
+#define BAM_FMUNMAP        8
+/*! @abstract the read is mapped to the reverse strand */
+#define BAM_FREVERSE      16
+/*! @abstract the mate is mapped to the reverse strand */
+#define BAM_FMREVERSE     32
+/*! @abstract this is read1 */
+#define BAM_FREAD1        64
+/*! @abstract this is read2 */
+#define BAM_FREAD2       128
+/*! @abstract not primary alignment */
+#define BAM_FSECONDARY   256
+/*! @abstract QC failure */
+#define BAM_FQCFAIL      512
+/*! @abstract optical or PCR duplicate */
+#define BAM_FDUP        1024
+/*! @abstract supplementary alignment */
+#define BAM_FSUPPLEMENTARY 2048
+
+/*! @function
+ @abstract  Get whether the query is on the reverse strand
+ @param  flag  unsigned int
+ @return    boolean true if query is on the reverse strand
+ */
+#define bam_is_rev(flag) ((flag&BAM_FREVERSE) != 0)
+
+/*! @function
+ @abstract  Get whether the query read is paired in sequencing, not matter whether it is mapped in a pair
+ @param  flag  unsigned int
+ @return    boolean true if query is paired in sequencing
+ */
+#define bam_is_pair(flag) ((flag&BAM_FPAIRED) != 0)
+
+/*! @function
+ @abstract  Get whether the query read is unmapped
+ @param  flag  unsigned int
+ @return    boolean true if query read is unmapped
+ */
+#define bam_is_unmap(flag) ((flag&BAM_FUNMAP) != 0)
+
+// See Sam format details:
+// http://genome.sph.umich.edu/wiki/SAM
+// http://samtools.github.io/hts-specs/SAMv1.pdf
+// Sam class is the processing of one read (or one line) of sam file
+class Sam {
+private:
+	// raw info
+	string qname;  // Column 1
+	unsigned int flag;  // Column 2: a bitwise set of information describing the alignment
+	string rname;  // Column 3: Reference sequence NAME of the alignment.
+	unsigned int pos;  // Column 4: 1-based leftmost mapping POSition of the first matching base. The first base in a reference sequence has coordinate 1. POS is set as 0 for an unmapped read without coordinate. If POS is 0, no assumptions can be made about RNAME and CIGAR.
+	unsigned int mapq;  // Column 5: MAPping Quality. It equals −10*log10 Pr{mapping position is wrong}, rounded to the nearest integer. A value 255 indicates that the mapping quality is not available.
+	string cigar;  // Column 6: CIGAR string.
+	string rnext;  // Column 7: Reference sequence name of the primary alignment of the NEXT read in the template.
+	string pnext;  // Column 8: Position of the primary alignment of the NEXT read in the template.
+	long tlen;  // Column 9: signed observed Template LENgth.
+	string seq;  // Column 10: segment SEQuence.
+	string quel;  // Column 11: ASCII of base QUALity plus 33 (same as the quality string in the Sanger FASTQ format). A base quality is the phred-scaled base error probability which equals −10*log10 Pr{base is wrong}.
+	string tag_MD; // String for mismatching positions. Z: Printable string, including space
+	string tag_NM; // Edit distance to the reference, including ambiguous bases but excluding clipping. i: Signed integer.
+	string tag_RG; // Read group. Z: Printable string, including space
+	string tag_XM; // methylation status for BISMARK bam file. Z: Printable string, including space.
+
+	// translated info from above raw info
+	size_t length; // reference sequence length
+	bool reverse; // true: reverse strand, false: forward strand
+	bool paired; // true: read is paired in sequencing, false: read is single-end
+	bool mapped; // true: read is mapped, false: read is unmapped
+	vector<unsigned int> cpg_sites_positions; // 1-base coordinates
+	vector<unsigned int> methylation_status; // a binary vector where "1" is methylated, "0" is unmethylated. Each methylation status corresponds to each CpG site in "cpg_sites_positions".
+public:
+	Sam(const std::string & line);
+	string parse_tag_string(const string & tag, string & value_type);
+	string get_tag(const string & tag);
+	bool has_tag(const string tag);
+	int parse_XM_tag_of_BISMARK_software(unsigned int start_position, bool is_reverse,
+		vector<GENOME_POSITION> & cpg_sites, string & methylation_status);
+	string get_cigar() { return cigar; };
+	string reference_id() { return qname; };
+	string reference_name() { return rname; };
+	string reference_seq() { return seq; };
+	size_t reference_length() { return length; };
+	GENOME_POSITION reference_start() { return pos; };
+	GENOME_POSITION reference_end() { return (pos+length-1); };
+	bool is_reverse() { return reverse; };
+	bool is_paired() { return paired; };
+	bool is_mapped() { return mapped; };
+};
+
+ostream & operator<<(ostream & os, Sam & read);
+void read_sam_file(string sam_file);
+void binning_reads_of_sam_file(string sam_file,
+	Bins_end_coord & bins_end_coord,
+	Bins_index & bins_index, int min_cpg_sites,
+	int print_level, bool print_tag_RG);
+void binning_reads_of_sam_file_with_bins_methycounts(
+	string sam_file, Bins_end_coord & bins_end_coord,
+	Bins_index & bins_index, int min_cpg_sites,
+	int print_level, bool print_tag_RG, Bins2Values & bins2methycount);
+
+#endif
+

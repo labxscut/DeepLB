@@ -1,0 +1,465 @@
+#include <cstdlib>
+#include <sstream>
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <vector>
+#include <string>
+#include <boost/algorithm/string.hpp>
+#include <boost/assign.hpp>
+#include "sam.h"
+#include "data_types.h"
+#include "utils.h"
+
+using namespace std;
+using namespace boost;
+
+string Sam::parse_tag_string(const string & tag, string & value_type) {
+	vector<string> items;
+	split(items, tag, is_any_of(":"));
+	value_type = items[1];
+	return items[2];
+}
+
+//
+// input:
+//    tag_value, a char sequence (call string by BISMARK software) indicating which position is methylated/unmethylated.
+//       Every position in the Bisulfite-Sequencing read is marked by the following symbol (UPPER CASE = METHYLATED,
+//       lower case = unmethylated). See for details http://www.bioinformatics.babraham.ac.uk/projects/bismark/Bismark_User_Guide.pdf
+//       .     position not involving with a cytosine
+//       z     unmethylated C in CpG context
+//       Z     methylated C in CpG context
+//       x     unmethylated C in CHG context
+//       X     methylated C in CHG context
+//       h     unmethylated C in CHH context
+//       H     methylated C in CHH context
+//       u     unmethylated C in Unknown context (CN or CHN)
+//       U     methylated C in Unknown context (CN or CHN)
+//       For example, ".zx..x...xh.h..x..h..hh.Z..Z....x..h....".
+//       We are interested in only methylated/unmethylated C in CpG context (z or Z). So our output ignore others.
+//    start_position, start position of the read, which is 1-base
+
+// output:
+//    cpg_sites,  output a set of CpG sites positions, which are 1-base
+//    methylation_status,  a string with binary sequence: 1 is methylated CpG site and 0 is unmethylated
+//
+int Sam::parse_XM_tag_of_BISMARK_software(GENOME_POSITION start_position, bool is_reverse,
+	vector<GENOME_POSITION> & cpg_sites, string & methylation_status)
+{
+	if (!has_tag("XM")) return(-1);
+	int n_cpg_sites=0;
+	GENOME_POSITION start = start_position;
+	if (is_reverse) start -= 1; // correcting the methylated C in the reverse strand, this "start" cannot be used for the leftmost coordinate
+	for (size_t i=0; i<tag_XM.size(); i++) {
+		switch (tag_XM.at(i)) {
+			case 'z':
+				cpg_sites.push_back(i+start);
+				methylation_status += "0";
+				n_cpg_sites++;
+				break;
+			case 'Z':
+				cpg_sites.push_back(i+start);
+				methylation_status += "1";
+				n_cpg_sites++;
+				break;
+		}
+	}
+	return(n_cpg_sites);
+}
+Sam::Sam(const string & line) {
+	vector<string> items;
+	split(items, line, is_any_of("\t"));
+	// 11 core fields in sam format
+	qname = items[0];
+	flag = (unsigned int)atoi(items[1].c_str());
+	rname = items[2];
+	pos = (GENOME_POSITION)atoi(items[3].c_str());
+	mapq = (unsigned int)atoi(items[4].c_str());
+	cigar = items[5];
+	rnext = items[6];
+	pnext = items[7];
+	tlen = (long)atoi(items[8].c_str());
+	seq = items[9];
+	quel = items[10];
+	size_t n_items = items.size();
+	// process 11 fields above
+	length = (unsigned int)seq.size();
+	reverse = bam_is_rev(flag);
+	paired = bam_is_pair(flag);
+	mapped = !bam_is_unmap(flag);
+	// process optional fields that follow TAG:TYPE:VALUE format.
+	if (n_items>11) {
+		string value_type;
+		for (size_t i=11; i<n_items; i++) {
+			string & tag = items[i];
+			string value = parse_tag_string(tag, value_type);
+			if (strncmp(tag.c_str(),"MD",2)==0) tag_MD = value;
+			if (strncmp(tag.c_str(),"NM",2)==0) tag_NM = value;
+			if (strncmp(tag.c_str(),"RG",2)==0) tag_RG = value;
+			if (strncmp(tag.c_str(),"XM",2)==0) tag_XM = value; // Tag "XM" is defined by Bismark
+			// we can add processing for more tags.
+		}
+	}
+}
+
+// If no tag, return an empty string
+string Sam::get_tag(const string & tag) {
+	if (strncmp(tag.c_str(),"MD",2)==0) return tag_MD;
+	if (strncmp(tag.c_str(),"NM",2)==0) return tag_NM;
+	if (strncmp(tag.c_str(),"RG",2)==0) return tag_RG;
+	if (strncmp(tag.c_str(),"XM",2)==0) return tag_XM; // Tag "XM" is defined by Bismark
+	// we can add processing for more tags.
+	string tag_value="";
+	return tag_value;
+}
+
+bool Sam::has_tag(const string tag) {
+	if (strncmp(tag.c_str(),"MD",2)==0) return !tag_MD.empty();
+	if (strncmp(tag.c_str(),"NM",2)==0) return !tag_NM.empty();
+	if (strncmp(tag.c_str(),"RG",2)==0) return !tag_RG.empty();
+	if (strncmp(tag.c_str(),"XM",2)==0) return !tag_XM.empty(); // Tag "XM" is defined by Bismark
+	// we can add processing for more tags.
+	return false;
+}
+
+ostream & operator<<(ostream & os, Sam & read) {
+	string strand = "+";
+	if (read.is_reverse()) strand = "-";
+	os << read.reference_name() << "\t" << read.reference_start() << "\t" << read.reference_end() << "\t" << strand << "\t" << read.reference_seq() << "\t" << read.get_cigar() << "\tXM:" << read.get_tag("XM") << "\tNM:" << read.get_tag("NM") << "\tMD:" << read.get_tag("MD");
+	return os;
+}
+
+void read_sam_file(string sam_file) {
+	//cerr << "reading '" << sam_file << "'" << endl;
+	istream * in=&cin; // default is stdin
+	ifstream fin;
+	if ( !(sam_file.compare("stdin")==0) ) {
+		fin.open(sam_file.c_str());
+		if (fin.fail()){
+			cerr << "Error: Unable to read " << sam_file << " in read_sam_file()" << endl;
+			exit(EXIT_FAILURE);
+		}
+		in = &fin;
+	}
+	char line[MAX_LINE_CHAR];
+	unsigned long i_line=0;
+	while(!(*in).getline(line, MAX_LINE_CHAR).eof()) {
+		//process the input line
+		string line_(line);
+		Sam read(line_);
+		cout << read << endl;
+		i_line++;
+	}
+	if ( !(sam_file.compare("stdin")==0) ) {
+		fin.close();
+	}
+}
+
+// the bin is half closed: [bin_start_pos, bin_end_pos)
+// all positions (for start/end positions of bins and sites) are all 1-base
+void get_all_sites_within_bin(const GENOME_POSITION bin_start_pos, const GENOME_POSITION bin_end_pos,
+	const vector<GENOME_POSITION> & sites, const string & statuses,
+	vector<GENOME_POSITION> & sites_falling_into_bin, string & statuses_falling_into_bin)
+{
+	for (int i=0; i<sites.size(); i++) {
+		if (sites[i]>=bin_start_pos && sites[i]<bin_end_pos) {
+			sites_falling_into_bin.push_back( sites[i] );
+			statuses_falling_into_bin += sites_falling_into_bin.at(i);
+		}
+	}
+}
+
+//
+// marker1_index take two possible values
+//   0: marker1 is a complementary bin for searching purpose only. It doesn't server as a marker.
+//   non-zero: a marker index (the first marker starts from 1).
+//
+// marker2_index take three possible values
+//   -1: marker2 doesn't exist. In other words, the read completely falls into marker1, without falling into marker2.
+//   0: marker2 is a complementary bin for searching purpose only. It doesn't server as a marker.
+//   non-zero: a marker index (the first marker starts from 1).
+//
+// marker1_index and marker2_index have six cases:
+//   (1) 0 and -1       : reads completely fall into marker1, which is invalid, return 0
+//   (2) non-zero and -1: reads completely fall into marker1, which is valid. return all CpG sites.
+//   (3) 0 and 0        : reads cover two markers, but all two markers are invalid (i.e., complementary bins), return 0
+//   (4) non-zero and 0 : reads cover two markers. marker1 is valid and marker2 is invalid, return only CpG sites falling into marker1
+//   (5) 0 and non-zero : reads cover two markers. marker1 is invalid and marker2 is valid. return only CpG sites falling into marker2.
+//   (6) non-zero and non-zero: reads cover two markers, both are valid. return all CpG sites.
+//
+// boundary: it is the boundary position of two adjacent marker bins. marker1: [a, boundary) and marker2: [boundary,b)
+//   all positions for boundary and CpG sites are 1-base
+//
+// return:
+//   (1) number of valid CpG sites, which are defined as the CpG sites falling into marker bin, not complementary bin.
+//   (2) list of valid CpG sites. If all CpG sites are valid, this list is empty, because all sites are known and are already in the variable "cpg_sites"
+//   (2) list of methylation status of valid CpG sites. If all CpG sites are valid, this list is empty, because all sites are known and are already in the variable "methylation_status"
+//
+int check_cpg_sites_in_marker_bin(const int marker1_index, const int marker2_index, const GENOME_POSITION boundary,
+	const vector<GENOME_POSITION> & cpg_sites, const string & methylation_status, vector<GENOME_POSITION> & valid_cpg_sites,
+	string & valid_methylation_status)
+{
+	switch (marker2_index) {
+		case -1:
+			// all CpG sites fall into marker1
+			// do not need to fill in valid_cpg_sites, directly return cpg_sites.size().
+			if (marker1_index==0) return 0; // case (1)
+			else return cpg_sites.size(); // case (2)
+		case 0:
+			if (marker1_index==0) return 0; // case (3)
+			else { // case (4)
+				// only marker1 is valid, so we only count those CpG sites in marker1 as the valid CpG sites
+				for (int i=0; i<cpg_sites.size(); i++)
+					if (cpg_sites[i]<boundary) {
+						valid_cpg_sites.push_back(cpg_sites[i]);
+						valid_methylation_status += methylation_status.at(i);
+					}
+				return valid_cpg_sites.size();
+			}
+		default: // marker2_index>0
+			if (marker1_index==0) { // case (5)
+				// only marker2 is valid, so we only count those CpG sites in marker2 as the valid CpG sites
+				for (int i=0; i<cpg_sites.size(); i++)
+					if (cpg_sites[i]>=boundary) {
+						valid_cpg_sites.push_back(cpg_sites[i]);
+						valid_methylation_status += methylation_status.at(i);
+					}
+				return valid_cpg_sites.size();
+			} else return cpg_sites.size(); // case (6)
+			
+	}
+}
+
+// print_level:
+//   1: print only valid CpG sites of this read, which fall into the marker bin.
+//   2: print all CpG sites of this read
+void binning_reads_of_sam_file(string sam_file,
+	Bins_end_coord & bins_end_coord,
+	Bins_index & bins_index, int min_cpg_sites,
+	int print_level, bool print_tag_RG)
+{
+	cerr << "reading '" << sam_file << "'" << endl;
+	istream * in=&cin; // default is stdin
+	ifstream fin;
+	if ( !(sam_file.compare("stdin")==0) ) {
+		fin.open(sam_file.c_str());
+		if (fin.fail()){
+			cerr << "Error: Unable to read " << sam_file << " in binning_reads_of_sam_file()" << endl;
+			exit(EXIT_FAILURE);
+		}
+		in = &fin;
+	}
+	char line[MAX_LINE_CHAR];
+	unsigned long i_line=0;
+	unsigned long out_line=0;
+	while(!(*in).getline(line, MAX_LINE_CHAR).eof()) {
+		//process the input line
+		string line_(line);
+		Sam read(line_);
+		string chr = read.reference_name();
+		GENOME_POSITION start_pos = read.reference_start();
+		GENOME_POSITION end_pos = read.reference_end();
+		bool is_reverse = read.is_reverse();
+		//cerr << read << endl;
+		int region_length_covered_by_this_bin;
+		int bin_internal_index = find_overlap_bin(bins_end_coord, chr, start_pos, end_pos, region_length_covered_by_this_bin);
+		if (bin_internal_index==-1) {
+			// For avoiding print too many warning messages, we ignore them here
+			//cerr << "Warn: " << chr << ":" << start_pos << "-" << end_pos << " doesn't exist in bin!" << endl; 
+			continue;
+		}
+		int marker1_index = bins_index[chr][bin_internal_index];
+		int marker2_index = -1; // -1 indicates the read completely falls into marker1, without falling into marker2
+		if (region_length_covered_by_this_bin < read.reference_length()) {
+			// this read covers two consecutive bins: "bin_internal_index" and "bin_internal_index+1".
+			marker2_index = bins_index[chr][bin_internal_index+1]; // marker2_index may be 0 or non-zero
+		}
+		if ( marker1_index!=0 || (marker2_index!=-1 && marker2_index!=0) ) {
+			// the read covers at least one marker, not completely falling into complementary bins
+			// further check if this read has at least 3 CpG sites within the bin.
+			vector<GENOME_POSITION> cpg_sites;
+			string methylation_status;
+			read.parse_XM_tag_of_BISMARK_software(start_pos, is_reverse, cpg_sites, methylation_status);
+			//cerr << marker1_index << "\t" << chr << "\t" << start_pos << "\t" << end_pos << "\t" << cpg_sites.size() << endl;
+			if (cpg_sites.size()>=min_cpg_sites) {
+				vector<GENOME_POSITION> valid_cpg_sites;
+				string valid_methylation_status;
+				int num_valid_cpg_sites = check_cpg_sites_in_marker_bin(marker1_index, marker2_index,
+					bins_end_coord[chr][bin_internal_index], cpg_sites, methylation_status,
+					valid_cpg_sites, valid_methylation_status);
+
+				if (num_valid_cpg_sites>=min_cpg_sites) {
+					string strand = "+";
+					if (is_reverse) strand = "-";
+					char marker2[64] = "-"; // this indicates the read completely falls into marker1, without falling into marker2
+					if (marker2_index != -1)
+						sprintf(marker2, "%d", marker2_index);
+					out_line++;
+					if (out_line==1) { // this is the first output line, we print header line
+						cout << "marker1_index" << "\t" << "marker2_index" << "\t" << "chr" << "\t" << "start_pos" << "\t" << "end_pos" << "\t" << "strand" << "\t" << "num_CpG_sites" << "\t" << "CpG_sites" << "\t" << "sites_methylation_status";
+						if (print_tag_RG) cout << "\t" << "RG";
+						cout << endl;
+					}
+					cout << marker1_index << "\t" << marker2 << "\t" << chr << "\t" << start_pos << "\t" << end_pos << "\t" << strand << "\t";
+					
+					if (print_level==1) { // print only valid CpG sites
+						cout << num_valid_cpg_sites << "\t";
+						if (num_valid_cpg_sites==cpg_sites.size()) {
+							print_vec_of_uint( cout, cpg_sites );
+							cout << "\t" << methylation_status;
+						} else {
+							print_vec_of_uint( cout, valid_cpg_sites );
+							cout << "\t" << valid_methylation_status;
+						}
+					}
+					if (print_level==2) { // print all CpG sites in the reads
+						cout << cpg_sites.size() << "\t";
+						print_vec_of_uint( cout, cpg_sites );
+						cout << "\t" << methylation_status;
+					}
+					if (print_tag_RG) cout << "\t" << read.get_tag("RG");
+					cout << endl;
+				}
+			}
+		}
+		i_line++;
+	}
+	if ( !(sam_file.compare("stdin")==0) ) {
+		fin.close();
+	}
+}
+
+// print_flag (print to stdout):
+//   0: print nothing
+//   1: print only valid CpG sites of this read, which fall into the marker bin.
+//   2: print all CpG sites of this read
+//
+// bins2methycount: each bin is associated with a vector of three value; Input is initialized as zeros.
+//   (1) the number of methylation count in this bin.
+//   (2) the number of unmethylation count in this bin.
+//   (3) the number of reads in this bin.
+void binning_reads_of_sam_file_with_bins_methycounts(
+	string sam_file, Bins_end_coord & bins_end_coord,
+	Bins_index & bins_index, int min_cpg_sites,
+	int print_level, bool print_tag_RG, Bins2Values & bins2methycount)
+{
+	cerr << "reading '" << sam_file << "'" << endl;
+	istream * in=&cin; // default is stdin
+	ifstream fin;
+	if ( !(sam_file.compare("stdin")==0) ) {
+		fin.open(sam_file.c_str());
+		if (fin.fail()){
+			cerr << "Error: Unable to read " << sam_file << " in binning_reads_of_sam_file_with_bins_methycounts()" << endl;
+			exit(EXIT_FAILURE);
+		}
+		in = &fin;
+	}
+	char line[MAX_LINE_CHAR];
+	unsigned long i_line=0;
+	unsigned long out_line=0;
+	while(!(*in).getline(line, MAX_LINE_CHAR).eof()) {
+		//process the input line
+		string line_(line);
+		Sam read(line_);
+		string chr = read.reference_name();
+		GENOME_POSITION start_pos = read.reference_start();
+		GENOME_POSITION end_pos = read.reference_end();
+		bool is_reverse = read.is_reverse();
+		//cerr << read << endl;
+		int region_length_covered_by_this_bin;
+		int bin_internal_index = find_overlap_bin(bins_end_coord, chr, start_pos, end_pos, region_length_covered_by_this_bin);
+		if (bin_internal_index==-1) {
+			// For avoiding print too many warning messages, we ignore them here
+			//cerr << "Warn: " << chr << ":" << start_pos << "-" << end_pos << " doesn't exist in bin!" << endl; 
+			continue;
+		}
+		int marker1_index = bins_index[chr][bin_internal_index];
+		int marker2_index = -1; // -1 indicates the read completely falls into marker1, without falling into marker2
+		if (region_length_covered_by_this_bin < read.reference_length()) {
+			// this read covers two consecutive bins: "bin_internal_index" and "bin_internal_index+1".
+			marker2_index = bins_index[chr][bin_internal_index+1]; // marker2_index may be 0 or non-zero
+		}
+		if ( marker1_index!=0 || (marker2_index!=-1 && marker2_index!=0) ) {
+			// the read covers at least one marker, not completely falling into complementary bins
+			// further check if this read has at least 3 CpG sites within the bin.
+			vector<GENOME_POSITION> cpg_sites;
+			string methylation_status;
+			read.parse_XM_tag_of_BISMARK_software(start_pos, is_reverse, cpg_sites, methylation_status);
+			//cerr << marker1_index << "\t" << chr << "\t" << start_pos << "\t" << end_pos << "\t" << cpg_sites.size() << endl;
+			if (cpg_sites.size()>=min_cpg_sites) {
+				vector<GENOME_POSITION> valid_cpg_sites;
+				string valid_methylation_status;
+				int num_valid_cpg_sites = check_cpg_sites_in_marker_bin(marker1_index, marker2_index,
+					bins_end_coord[chr][bin_internal_index], cpg_sites, methylation_status,
+					valid_cpg_sites, valid_methylation_status);
+
+				if (num_valid_cpg_sites>=min_cpg_sites) {
+					string strand = "+";
+					if (is_reverse) strand = "-";
+					char marker2[64] = "-"; // this indicates the read completely falls into marker1, without falling into marker2
+					if (marker2_index != -1)
+						sprintf(marker2, "%d", marker2_index);
+					out_line++;
+
+					// print reads info (with marker index info) to stdout
+					if (print_level>0) {
+						if (out_line==1) {// this is the first output line, we print header line
+							cout << "marker1_index" << "\t" << "marker2_index" << "\t" << "chr" << "\t" << "start_pos" << "\t" << "end_pos" << "\t" << "strand" << "\t" << "num_CpG_sites" << "\t" << "CpG_sites" << "\t" << "sites_methylation_status";
+							if (print_tag_RG) cout << "\t" << "RG";
+							cout << endl;
+						}
+						cout << marker1_index << "\t" << marker2 << "\t" << chr << "\t" << start_pos << "\t" << end_pos << "\t" << strand << "\t";
+						
+						if (print_level==1) { // print only valid CpG sites, which fall into the marker bin
+							cout << num_valid_cpg_sites << "\t";
+							if (num_valid_cpg_sites==cpg_sites.size()) {
+								print_vec_of_uint( cout, cpg_sites );
+								cout << "\t" << methylation_status;
+							} else {
+								print_vec_of_uint( cout, valid_cpg_sites );
+								cout << "\t" << valid_methylation_status;
+							}
+						}
+						if (print_level==2) { // print all CpG sites in the reads
+							cout << cpg_sites.size() << "\t";
+							print_vec_of_uint( cout, cpg_sites );
+							cout << "\t" << methylation_status;
+						}
+						if (print_tag_RG) cout << "\t" << read.get_tag("RG");
+						cout << endl;
+					}
+
+					// get counts for number of methylated and unmethylated
+					// bugs:
+					//   (1) when num_valid_cpg_sites < min_cpg_sites, we ignore these reads which may possibly have a number of valid CpG sites. However, if we use min_cpg_sites=1, then this bug is gone away.
+					//   (2) when (marker1_index>0 and marker2_index>0), we count this read twice in both marker1 and marker2. In real data, this case almost never happens.
+					if (marker1_index>0) {
+						if (num_valid_cpg_sites==cpg_sites.size()) {
+							bins2methycount[marker1_index][0] += count(methylation_status.begin(), methylation_status.end(), '1');
+							bins2methycount[marker1_index][1] += count(methylation_status.begin(), methylation_status.end(), '0');
+						} else {
+							bins2methycount[marker1_index][0] += count(valid_methylation_status.begin(), valid_methylation_status.end(), '1');
+							bins2methycount[marker1_index][1] += count(valid_methylation_status.begin(), valid_methylation_status.end(), '0');
+						}
+						bins2methycount[marker1_index][2]++; // count the number of reads in this bin
+					}
+					if (marker2_index>0) {
+						if (num_valid_cpg_sites==cpg_sites.size()) {
+							bins2methycount[marker2_index][0] += count(methylation_status.begin(), methylation_status.end(), '1');
+							bins2methycount[marker2_index][1] += count(methylation_status.begin(), methylation_status.end(), '0');
+						} else {
+							bins2methycount[marker2_index][0] += count(valid_methylation_status.begin(), valid_methylation_status.end(), '1');
+							bins2methycount[marker2_index][1] += count(valid_methylation_status.begin(), valid_methylation_status.end(), '0');
+						}
+						bins2methycount[marker2_index][2]++; // count the number of reads in this bin
+					}
+				}
+			}
+		}
+		i_line++;
+	}
+	if ( !(sam_file.compare("stdin")==0) ) {
+		fin.close();
+	}
+}
+

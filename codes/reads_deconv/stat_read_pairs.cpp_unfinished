@@ -1,0 +1,79 @@
+// stat_paired_end_reads.cpp
+// Given a paired-end reads file (SAM), check the fraction of overalpping 
+//
+// 
+#include "sam.h"
+#include "my_getopt-1.5/getopt.h"
+
+using namespace std;
+
+// Global variables
+string reads_file="stdin"; // default input file is "standard input" (stdin)
+int min_cpg_sites=0; // default minimum CpG sites of reads we will use is 0
+
+/*-----------------------------------
+command line parser's data structure
+-----------------------------------*/
+struct option longopts[] =
+{
+	/* name,                      has_arg,          flag, val */ /* longind */
+	{ "help",                           no_argument,       0,   'h' }, /*       0 */
+	{ "reads_file",                     required_argument, 0,   'r' }, /*       2 */
+	{ "filter_min_cpg_sites_of_reads",  required_argument, 0,   'c' }, /*       4 */
+	/* end-of-list marker */
+	{ 0, 0, 0, 0 }
+};
+
+char *shortopts = "hr:c:"; /* short options string */
+int longind = 0; /* long option list index */
+
+void print_usage() {
+	cerr << "Scanning the paired-end reads data and print their statistics to standard output" << endl << endl;
+	cerr << "USAGE: stat_paired_end_reads [options] -r [reads file]" << endl << endl;
+	cerr << "   Options:" << endl;
+	cerr << "     -c [min number of CpG sites]:  default value is 0. This is for filtering reads covering small number of CpG sites." << endl;
+	cerr << endl;
+    cerr << "version 1.0, May 18 2017" << endl;
+    cerr << "By Wenyuan Li" << endl;
+	cerr << endl;
+}
+
+void parse_command_line(int argc, char * argv[])
+{
+	int opt; /* during argument parsing, opt contains the return value from getopt() */
+	int longind = 0; /* long option list index */
+	/* parse all options from the command line */
+	while ((opt=getopt_long(argc, argv, shortopts, longopts, &longind)) != -1) {
+		switch (opt) {
+			case 'h': /* --help */
+				print_usage(); /* 'parms_setting' is a global variable */
+				exit(EXIT_FAILURE);
+				break;
+			case 'r': /* --reads_file */
+				reads_file = optarg;
+				break;
+			case 'c': /* --filter_min_cpg_sies_of_reads */
+				min_cpg_sites = (int)atoi(optarg);
+				break;
+			default: /* something unexpected has happened */
+				cerr << endl << "Error: wrong parameters!" << endl << endl;
+				print_usage();
+				exit(EXIT_FAILURE);
+		}
+	}
+	if (reads_file.empty()) {
+		cerr << endl << "Error: reads file is required!" << endl << endl;
+		print_usage();
+		exit(EXIT_FAILURE);
+	}
+}
+
+int main(int argc, char* argv[]) {
+	parse_command_line(argc, argv);
+
+	Bins_end_coord bins_end_coord; // This is used for finding which bin a genomic position belongs to.
+	Bins_index bins_index; // marker index (start from 1) and index of complementary bins (usually 0)
+	create_whole_chromosome_bins_of_human_hg19(bins_end_coord, bins_index);
+	overlap_stat_of_all_paired_reads(reads_file, bins_end_coord, bins_index, min_cpg_sites);
+}
+
