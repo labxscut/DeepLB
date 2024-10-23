@@ -232,7 +232,11 @@ Result/3.ResTran_results
 ```
 
 ## Part3: Deep Learning (ResTran) model training
+```
+conda env create -f env/part3_env.yaml
+```
 ```SHELL
+
 bash ResTran.sh -i /home/yinliang/PROJECT/DeepLB -s 1 -t lihc -g PH -m hypo -c 0.4 -v 1
 ```
 Parameters
@@ -247,7 +251,7 @@ Parameters
 
 # Citation
 
-If you use this code for your research, please cite paper:
+**If you use this code for your research, please cite paper:**
 
 Kang S, Li Q, Chen Q, Zhou Y, Park S, Lee G, Grimes B, Krysan K, Yu M, Wang W, Alber F, Sun F, Dubinett SM, Li W, Zhou XJ. CancerLocator: non-invasive cancer diagnosis and tissue-of-origin prediction using methylation profiles of cell-free DNA. Genome Biol. 2017 Mar 24;18(1):53. doi: 10.1186/s13059-017-1191-5. PMID: 28335812; PMCID: PMC5364586.
 
