@@ -19,8 +19,7 @@ devtools::install_github("labxscut/DeepLB")
 └── Scripts
     ├── Part1.Marker_Selection
     ├── Part2.Pseudo-fragment_Generation_by_mMTS
-    ├── Part3.ResTran_model_training
-    └── Part4.Sample_classification
+    └──  Part3.ResTran_model_training
 ```
 
 ## Prepare data
@@ -223,18 +222,36 @@ python -u mMTS-pipeline.py -t lihc -s 0.2 -m hypo -g TH -a tumorOnly -r 2 -l 1 -
 - -c : CpG Clusters methylation status(mean-diff or freq-diff)
 - -p : tumor purity (top30 or subsamples)
 - -e : except steps
-
+```
+Result/3.ResTran_results
+├── train_result
+│   └── lihc-PH
+│       ├── 1_0.4
+└── train_result
+│       ├── 1_0.4
+```
 
 ## Part3: Deep Learning (ResTran) model training
-
-
-## Part4: Sample classification
+```SHELL
+bash ResTran.sh -i /home/yinliang/PROJECT/DeepLB -s 1 -t lihc -g PH -m hypo -c 0.4 -v 1
+```
+Parameters
+- i：root dir
+- s: sample list
+- t :tumor
+- g: group
+- m: marker type
+- c :cutoff/threshold
+- v: validation times
 
 
 # Citation
 
-If you use this code for your research, please cite our paper:
-Kang, S., Li, Q., Chen, Q. et al. CancerLocator: non-invasive cancer diagnosis and tissue-of-origin prediction using methylation profiles of cell-free DNA. Genome Biol 18, 53 (2017). https://doi.org/10.1186/s13059-017-1191-5
+If you use this code for your research, please cite paper:
+
+Kang S, Li Q, Chen Q, Zhou Y, Park S, Lee G, Grimes B, Krysan K, Yu M, Wang W, Alber F, Sun F, Dubinett SM, Li W, Zhou XJ. CancerLocator: non-invasive cancer diagnosis and tissue-of-origin prediction using methylation profiles of cell-free DNA. Genome Biol. 2017 Mar 24;18(1):53. doi: 10.1186/s13059-017-1191-5. PMID: 28335812; PMCID: PMC5364586.
 
 Li W, Li Q, Kang S, Same M, Zhou Y, Sun C, Liu CC, Matsuoka L, Sher L, Wong WH, Alber F, Zhou XJ. CancerDetector: ultrasensitive and non-invasive cancer detection at the resolution of individual reads using cell-free DNA methylation sequencing data. Nucleic Acids Res. 2018 Sep 6;46(15):e89. doi: 10.1093/nar/gky423. PMID: 29897492; PMCID: PMC6125664.
+
+Li J, Wei L, Zhang X, Zhang W, Wang H, Zhong B, Xie Z, Lv H, Wang X. DISMIR: Deep learning-based noninvasive cancer detection by integrating DNA sequence and methylation information of individual cell-free DNA reads. Brief Bioinform. 2021 Nov 5;22(6):bbab250. doi: 10.1093/bib/bbab250. PMID: 34245239; PMCID: PMC8575022.
 
