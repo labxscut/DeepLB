@@ -4,6 +4,8 @@ In this study, we introduce our novel deep learning model, DeepLB, developed for
 
 ![Alt text](png1.png)
 
+![Alt text](png2.png)
+
 ## Installation
 ```R
 install.packages('devtools')
@@ -166,7 +168,8 @@ bash 1.6.2_submit_sel_markers_tumorOnly.sh -i /home/yinliang/PROJECT/DeepLB -g T
 ```
 
 ## Part2: Pseudo-fragment Generation by mMTS
-![Alt text](png2.png)
+
+
 ```
 Scripts/Part2.Pseudo-fragment_Generation_by_mMTS/
 ├── 2.0_prepare_files_paired.py
