@@ -6,6 +6,23 @@ In this study, we introduce our novel deep learning model, DeepLB, developed for
 
 ![Alt text](png2.png)
 
+# DeepLB
+
+## Table of Contents
+- [DeepBL](#deepbl)
+  - [Overview](#overview)
+- [DeepLB](#deeplb)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Prepare data](#prepare-data)
+    - [Warning!!](#warning)
+  - [Part1: Marker Selection](#part1-marker-selection)
+  - [Part2: Pseudo-fragment Generation by mMTS](#part2-pseudo-fragment-generation-by-mmts)
+  - [Part3: Deep Learning (ResTran) model training](#part3-deep-learning-restran-model-training)
+- [Use](#use)
+- [Citation](#citation)
+
+
 ## Installation
 ```R
 install.packages('devtools')
@@ -21,7 +38,7 @@ devtools::install_github("labxscut/DeepLB")
 └── Scripts
     ├── Part1.Marker_Selection
     ├── Part2.Pseudo-fragment_Generation_by_mMTS
-    └──  Part3.ResTran_model_training
+    └── Part3.ResTran_model_training
 ```
 
 ## Prepare data
@@ -35,8 +52,8 @@ Predata/
 │   └── TCGA_Study_Abbreviations.txt
 ├── metadata
 │   ├── all_samples_annotation.txt #tumor tissue and normal plasma annotation
-│   ├── sample_list.normal # normal plasma list
-│   └── sample_metadata.txt # plasma sample metadata
+│   ├── background_for_train.txt # normal plasma list
+│   └── all_WGBS_sample_metadata.xlsx # plasma sample metadata
 ├── reference
 │   ├── cpg_system
 │   │   ├── chrom_list.txt
@@ -55,19 +72,19 @@ Predata/
 ├── tumor_purity
 │   └── LIHC_purity.csv # generate by Part1
 └── WGBS 
-    ├── normal
-    │   ├── CTR101.bam
-    │   └── CTR101.bam.bai
-    └── tumor
-        ├── HOT151.bam
-        └── HOT151.bam.bai
 ```
+
+### Warning!!
+Before use mMTS, please check the env_module.py and make sure each file path is right
+
 ## Part1: Marker Selection
-The related environment:
-```
-conda env create -f env/part1_env.yaml
-```
-In this part we  contain 6 steps:
+- 1.1 Prepare 450K data
+- 1.2 Identify CpG Clusters
+- 1.3 Quantifying the methylation level of CpG clusters
+- 1.4 Split Cohort for cross validation
+- 1.5 Estimate statistical parameters
+- 1.6 Marker Selection
+  
 ```
 Scripts/
 ├── Part1.Marker_Selection
@@ -100,80 +117,20 @@ Result/
 ├── 1.5_train_model_for_parameters
 ├── 1.6_select_marker
 ```
-< Parameters (args) >
----
-- root_dir: Directory where DeepLB is located
-- tumor: TCGA Abbreviations (LIHC/lihc)
-- group : PH TH MH
-- subsample : top30 for TH and subsample30 for MH
-- annotation_file: tumor tissue and normal plasma annotation
-- normal_sample_list: normal plasma list
-- marker_selection_threshold: for marker selection ("0.1 0.15 0.2")
-- validation: cohorts for cross validation 
-
----
-
-### 1.1 Prepare 450K data
-
-```shell
-#for TH or MH group subsample
-#args : root_dir tumor group tumor sample number
-Rscript 1.1_subsample_for_tumorOnly.R /home/yinliang/PROJECT/DeepLB LIHC TH 30
-Rscript 1.1_subsample_for_tumorOnly.R /home/yinliang/PROJECT/DeepLB LIHC MH 30
-#for PH/TH/MH 
-#args: root_dir tumor
-Rscript 1.1_reformat_TCGA.R /home/yinliang/PROJECT/DeepLB LIHC
-
-```
-### 1.2 Identify CpG Clusters
-this step include 3 scripts to finish, run the 1.2_refine_blocks.sh to process and remember check the file path
-```shell
-#args: root_dir tumor
-Rscript 1.2_define_blocks_according_CancerLocator_method.R /home/yinliang/PROJECT/DeepLB
-bash 1.2_refine_blocks.sh /home/yinliang/PROJECT/DeepLB
-```
-
-### 1.3 Quantifying the methylation level of CpG clusters
-this step inclue 3 scripts to calculate the CpG Clusters methylation status of 450K and WGBS:
-- 1.3.1 for pairwise method, calculate the tumor tissue and ajacent normal tissue
-- 1.3.2 for tumorOnly method, only calculate the all tumor tissue
-- 1.3.3-1.3.4 for normal plasma sample WGBS data, first extract the part in previous defined CpG Cluster and then calculate the methylation status
-```shell
-# args：root_dir tumor annotation_file group subsample_num plasma_sample_list
-Rscript 1.3.1_get_methylation_ratio_blocks_TCGA_paired.R /home/yinliang/PROJECT/DeepLB lihc all_samples_annotation.txt
-Rscript 1.3.2_get_methylation_ratio_blocks_TCGA_tumorOnly.R /home/yinliang/PROJECT/DeepLB lihc TH 30
-bash 1.3.3_extract_reads_from_normal_plasma.sh -i /home/yinliang/PROJECT/DeepLB -s sample_list.normal
-Rscript 1.3.4_get_methylation_ratio_blocks_normal_plasma.R /home/yinliang/PROJECT/DeepLB sample_list.normal 
-```
-### 1.4 Split Cohort for cross validation
-This step is for generate multi cohort to cross validation
-```shell
-# args：root_dir tumor annotation_file group subsample plasma_sample_list
-bash 1.4.1_submit_paired_PH.sh -i /home/yinliang/PROJECT/DeepLB -g PH -t lihc -s all_samples_annotation.txt
-bash 1.4.2_submit_tumorOnly_THorMH.sh -i /home/yinliang/PROJECT/DeepLB -g TH -t lihc -s all_samples_annotation.txt -v 2 -n top30
-```
-### 1.5 Estimate statistical parameters 
-This step is for estimating parameters for marker selection, including three files ,alphas/betas/dist2norm
-```shell
-# args：root_dir tumor annotation_file group subsample
-bash 1.5_submit_est.sh -i /home/yinliang/PROJECT/DeepLB -g PH -t lihc -s paired -v 1 -n ""
-bash 1.5_submit_est.sh -i /home/yinliang/PROJECT/DeepLB -g TH -t lihc -s tumorOnly -v 1 -n "top30"
-```
-
-### 1.6 Marker Selection
-```shell
-# args：root_dir tumor annotation_file group subsample_num marker_selection_threshold(-c) and validation(-v)
-bash 1.6.1_submit_sel_markers_paired.sh -i /home/yinliang/PROJECT/DeepLB -g PH -t lihc -v 1 -c "0.1 0.15"
-bash 1.6.2_submit_sel_markers_tumorOnly.sh -i /home/yinliang/PROJECT/DeepLB -g TH -t lihc -v 1 -c "0.1 0.15" -n "top30"
-```
 
 ## Part2: Pseudo-fragment Generation by mMTS
-
-
+- step0 : prepare sample list,marker bed file, markers' CpG methylation status file and CpG site position file
+- step1 : obtain the markers reference gene from GRCH38.fa
+- step2 : prepare each CpG site's methylation status in markers
+- step3 : generate reference DNA reads from markers reference gene
+- step4 : simulate methylation status for reference DNA reads(methy.reads)
+- step5-6 : obtain the part of markers from plasma WGBS bam file 
+- step7 : transfer methy.reads to pseudo-fragments for model training
+- step8 : extract DNA reads and methy status from bam file of plasma sample
 ```
 Scripts/Part2.Pseudo-fragment_Generation_by_mMTS/
 ├── 2.0_prepare_files_paired.py
-├── 2.0_prepare_files_tumorOnly.py
+├── 2.0_prepare_files_tumorOnly.py 
 ├── 2.1_gen_DMRref_gene_more1.py
 ├── 2.2_generate_cpg_ref_beta.py
 ├── 2.3_gen_dmr_reads.py
@@ -197,60 +154,58 @@ Result/2.simulation_result/
 │       └── log
 └── tumorOnly
 ```
-### This pipeline include 9 steps
-- step0 : prepare sample list,marker bed file, markers' CpG methylation status file and CpG site position file
-- step1 : obtain the markers reference gene from GRCH38.fa
-- step2 : prepare each CpG site's methylation status in markers
-- step3 : generate reference DNA reads from markers reference gene
-- step4 : simulate methylation status for reference DNA reads(methy.reads)
-- step5-6 : obtain the part of markers from plasma WGBS bam file 
-- step7 : transfer methy.reads to pseudo-fragments for model training
-- step8 : extract DNA reads and methy status from bam file of plasma sample
 
-### Warning!!
-Before use mMTS, please check the env_module.py and make sure each file path is right
-
-### Use
-```shell
-python -u mMTS-pipeline.py -t lihc -s 0.2 -m hypo -g PH -a paired -r 2 -l 1 -L 66 -D 3 -e "" -c freq-diff -p paired
-python -u mMTS-pipeline.py -t lihc -s 0.2 -m hypo -g TH -a tumorOnly -r 2 -l 1 -L 66 -D 3 -e "" -c mean-diff -p TumorOnly -p top30
+## Part3: Deep Learning (ResTran) model training
 ```
-### parameters:
-- -t : tumor type 
-- -s : marker selection threshold
-- -g : group(TH MH PH)
-- -a : approach(Pairwise or TumorOnly)
-- -r : repeat times
-- -l : start list
-- -c : CpG Clusters methylation status(mean-diff or freq-diff)
-- -p : tumor purity (top30 or subsamples)
-- -e : except steps
-```
+Scripts/Part3.ResTran_model_training/
+├── training.py
+├── 3models.py
+├── predict_reads_source.py
+├── cal_risk.py
+├── ResTran.sh
 Result/3.ResTran_results
 ├── train_result
 │   └── lihc-PH
 │       ├── 1_0.4
 └── train_result
 │       ├── 1_0.4
-```
+``` 
 
-## Part3: Deep Learning (ResTran) model training
-```
-conda env create -f env/part3_env.yaml
-```
-```SHELL
+# Use
+Usage: DeepLB_pipeline.sh [OPTIONS]
+Options (full names and abbreviations):
+  --root_dir, -r <ROOT_DIR>          : Root directory of the project
+  --tumor, -t <TUMOR>               : Tumor sample identifier (e.g., lihc, brca)
+  --group, -g <GROUP>              : Group identifier (e.g., PH, TH, MH)
+  --subsample, -s <SUBSAMPLE>      : Subsample identifier (e.g., top30, sub30)
+  --annotation_file, -a <FILE>     : Annotation file path
+  --normal_sample_list, -n <FILE> : Normal sample list file path
+  --marker_selection_threshold, -m <THRESHOLD> : Marker selection threshold (e.g., "0.1 0.15 0.2")
+  --validation, -v <VALIDATION>     : Validation identifier (1~10)
+  --window_size, -w <SIZE>         : Window size for CpG clusters
+  --min_probe, -p <COUNT>         : Minimum number of probes
+  --module, -u <MODULE>            : Module to run (part1, part2, part3, all)
+  --marker_type, -k <TYPE>        : Marker type for pseudo-fragment generation
+  --begin_list, -b <FILE>         : Begin list file path
+  --coverage, -c <COVERAGE>       : Coverage threshold
+  --generation_threshold, -q <THRESHOLD> : Generation threshold (selected from marker selection threshold)
+  --fragment_length, -l <LENGTH>  : Fragment length for pseudo-fragment generation
+  --meta, -x <FILE>               : Meta file path
+  --dry_run, -d|-n                : Enable dry-run mode
+  --help, -h                      : Display this help message
 
-bash ResTran.sh -i /home/yinliang/PROJECT/DeepLB -s 1 -t lihc -g PH -m hypo -c 0.4 -v 1
 ```
-Parameters
-- i：root dir
-- s: sample list
-- t :tumor
-- g: group
-- m: marker type
-- c :cutoff/threshold
-- v: validation times
+#Example
+# Only part1
+bash DeepLB_pipeline.sh -r /home/yinliang/PROJECT/DeepLB -t lihc -g TH -s top30 -a all_samples_annotation.txt -n background_for_train.txt -m "0.1 0.15 0.2" -v 1 -w 100 -p 3 -u part1
+# Only part2
+bash DeepLB_pipeline.sh -r /home/yinliang/PROJECT/DeepLB -t lihc -g TH -q 0.1 -k "hyper" -v 1 -s top30 -b begin_list.txt -c 3 -l 66 -u part2
+# Only part3
+bash DeepLB_pipeline.sh -r /home/yinliang/PROJECT/DeepLB -t lihc -g TH -q 0.1 -k "hyper" -v 1 -u part3
+# ALL
+bash DeepLB_pipeline.sh -r /home/yinliang/PROJECT/DeepLB -t lihc -g TH -s top30 -a all_samples_annotation.txt -n background_for_train.txt -m "0.1 0.15 0.2" -v 1 -w 100 -p 3 -q 0.1 -k marker_type -b begin_list.txt -c 30 -l 66 -u all
 
+```
 
 # Citation
 
@@ -260,5 +215,6 @@ Kang S, Li Q, Chen Q, Zhou Y, Park S, Lee G, Grimes B, Krysan K, Yu M, Wang W, A
 
 Li W, Li Q, Kang S, Same M, Zhou Y, Sun C, Liu CC, Matsuoka L, Sher L, Wong WH, Alber F, Zhou XJ. CancerDetector: ultrasensitive and non-invasive cancer detection at the resolution of individual reads using cell-free DNA methylation sequencing data. Nucleic Acids Res. 2018 Sep 6;46(15):e89. doi: 10.1093/nar/gky423. PMID: 29897492; PMCID: PMC6125664.
 
+Our models constuction references the code of DISMIR: https://github.com/XWangLabTHU/DISMIR
 Li J, Wei L, Zhang X, Zhang W, Wang H, Zhong B, Xie Z, Lv H, Wang X. DISMIR: Deep learning-based noninvasive cancer detection by integrating DNA sequence and methylation information of individual cell-free DNA reads. Brief Bioinform. 2021 Nov 5;22(6):bbab250. doi: 10.1093/bib/bbab250. PMID: 34245239; PMCID: PMC8575022.
 
