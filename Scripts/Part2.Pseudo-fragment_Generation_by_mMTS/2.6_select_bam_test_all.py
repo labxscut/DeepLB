@@ -34,9 +34,14 @@ root_dir =  env_module.root_out_dir + method + "/" + tumor_type + "-" + group + 
 sample_list_dir = root_dir  + env_module.preprocess_folder +"sample_list/"
 
 bed_dir = root_dir  + env_module.preprocess_folder + "DMR/"
-normal_dir = env_module.wgbs_bam_dir + "normal/"
-tumor_dir = env_module.wgbs_bam_dir + "tumor/"
+# test bam data dir:  set the dir according cohort
+dir1 = env_module.wgbs_bam_dir + env_module.cohort1 # CRR05*
+dir2 = env_module.wgbs_bam_dir + env_module.cohort2 # CRR03*
+dir3 = env_module.wgbs_bam_dir + env_module.cohort3 # NC0*
+dir4 = env_module.wgbs_bam_dir + env_module.backgroud_cohort #"TBR*/CTR*/HOT*"
 
+#normal_dir = env_module.wgbs_bam_dir + "normal/"
+#tumor_dir = env_module.wgbs_bam_dir + "tumor/"
 
 def input_sample(i):
     sample_list = sample_list_dir + "test_" + str(i) + ".list"
@@ -57,10 +62,18 @@ for i in range(cohort,rep):
     sample_name = input_sample(i)
     print(f"sample num: {len(sample_name)}")
     for s in sample_name:
-        if "HOT" in s: #"tumor sample prex"
-            bam_dir = normal_dir
-        elif "CTR" in s :#"normal sample prex"
-            bam_dir = normal_dir
+#        if "HOT" in s: #"tumor sample prex"
+#            bam_dir = normal_dir
+#        elif "CTR" in s :#"normal sample prex"
+#            bam_dir = normal_dir
+        if "HOT" in s or "TBR" in s or "CTR" in s or "HBV" in s:
+            bam_dir = dir4
+        elif "NC" in s or "GC"in s or "PC" in s:
+            bam_dir = dir3
+        elif "CRR05" in s:
+            bam_dir = dir1
+        elif "CRR03" in s:
+            bam_dir = dir2
         sample_file = bam_dir + s.strip() + ".bam"       
         out_name = out_dir + s.strip() + "_process.bam"
         if os.path.exists(out_name) and os.stat(out_name).st_size != 0:

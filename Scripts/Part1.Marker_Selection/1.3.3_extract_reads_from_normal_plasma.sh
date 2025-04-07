@@ -46,18 +46,23 @@ cmd_dir=${project_dir}"/codes/reads_deconv"
 sample_list=`cat $samples_list_file`
 
 for sample in $sample_list; do
-	echo $sample
-	JOB=${job_log_dir}"a_${sample}_extract_read.pbs"
-	out_reads_file="$out_dir/${sample}.reads_bins.gz"
-	out_methy_rates_file="$out_dir/${sample}.methy_bins"
-	out_sam_reads_file="$out_dir/${sample}.sam"
+    echo $sample
+    JOB=${job_log_dir}"a_${sample}_extract_read.pbs"
+    out_reads_file="$out_dir/${sample}.reads_bins.gz"
+    out_methy_rates_file="$out_dir/${sample}.methy_bins"
+    out_sam_reads_file="$out_dir/${sample}.sam"
 
-	# change -s to -p for paired end mode!!
-	# we still use -s for inhouse data, treat them as single-end 
-	echo "samtools view ${samples_dir}/${sample}${bam_suffix} | ${cmd_dir}/reads_binning -s -b $all_markers_file -c $min_cpg_sites_for_reads -r stdin -B ${out_methy_rates_file} -R $out_sam_reads_file | gzip -f > ${out_reads_file}" > $JOB
+    if [ -s "$out_reads_file" ] && [ -s "$out_methy_rates_file" ] && [ -s "$out_sam_reads_file" ]; then
+        echo "file $out_reads_file and $out_methy_rates_file and $out_sam_reads_file of $sample exists, skip"
+        continue
+    fi
 
-	chmod a+x $JOB
-	nohup $JOB > ${JOB}.log 2>&1 &
+    # change -s to -p for paired end mode!!
+    # we still use -s for inhouse data, treat them as single-end 
+    echo "samtools view ${samples_dir}/${sample}${bam_suffix} | ${cmd_dir}/reads_binning -s -b $all_markers_file -c $min_cpg_sites_for_reads -r stdin -B ${out_methy_rates_file} -R $out_sam_reads_file | gzip -f > ${out_reads_file}" > $JOB
+
+    chmod a+x $JOB
+    nohup $JOB > ${JOB}.log 2>&1 &
 done
 #gzip ${out_sam_reads_file}1
 #gzip ${out_sam_reads_file}2

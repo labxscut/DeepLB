@@ -109,6 +109,12 @@ for (tumor.type in c(target_tumor)) { #,"lihc","paad"
    
          
   for (status in c("tumor")) {
+  file_path = paste(output.dir, tumor.type, "_", status, "_only.tsv", sep='')
+  if (file.exists(file_path) && file.size(file_path) > 0) {
+    print(paste("file", file_path, "Exists and the size is not 0."))
+  } else {
+    print(paste("file", file_path, "Does not exist or has a size of 0."))
+  
     #status = "tumor"
     matrix.file <- paste(input.dir, tumor.type, '_', status, sep='')
     beta.matrix <- data.matrix(fread(matrix.file, header=F))
@@ -126,19 +132,22 @@ for (tumor.type in c(target_tumor)) { #,"lihc","paad"
     }
     
     ## sample index defined by Shuli's table
-   status.ind <- which(sample.annot.tb$V4 == status)
-   sample.annot.tb.subset <- sample.annot.tb[status.ind, ]
-   tmp.ind <- match(sample.names, sample.annot.tb.subset$V1)
-   sample.index.name <- sample.annot.tb.subset$V1[tmp.ind]
-   write.table(cbind(sample.index.name, t(beta.matrix.cluster)), file = paste(output.dir, tumor.type, "_", status, "_only.tsv", sep=''), quote=F, sep = "\t", col.names = F, row.names=F)
-  
-    tumor_only <- fread(paste(output.dir, tumor.type, "_", status, "_only.tsv", sep=''))
-    tumor_only[1:4,1:4]
-    purity <- read.table(paste0(root.dir ,toupper(tumor.type),"_",prex,select_sample,".txt"))
-    tumor_purity <- tumor_only[tumor_only$V1 %in% purity$sample,]
-    tumor_purity[1:4,1:4]
-    dim(tumor_purity)
-    write.table(tumor_purity, file =  paste0(output.dir, tumor.type, "_", prex,select_sample, ".tsv", sep=''),quote=F, sep = "\t", col.names = F, row.names=F)
+  status.ind <- which(sample.annot.tb$V4 == status)
+  sample.annot.tb.subset <- sample.annot.tb[status.ind, ]
+  tmp.ind <- match(sample.names, sample.annot.tb.subset$V1)
+  sample.index.name <- sample.annot.tb.subset$V1[tmp.ind]
+  print(sample.index.name)
+  write.table(cbind(sample.index.name, t(beta.matrix.cluster)), file = paste(output.dir, tumor.type, "_", status, "_only.tsv", sep=''), quote=F, sep = "\t", col.names = F, row.names=F)
+  }
+  tumor_only <- fread(paste(output.dir, tumor.type, "_", status, "_only.tsv", sep=''))
+  tumor_only[1:4,1:4]
+  purity <- read.table(paste0(root.dir ,"/Predata/tumor_purity/",toupper(tumor.type),"_",prex,select_sample,".txt"))
+  #purity <- read.table("/home/yinliang/PROJECT/DeepLB/Predata/tumor_purity/BRCA_top30.txt")
+  purity$sample <- sub("-[^-]+$", "", purity$sample)
+  tumor_purity <- tumor_only[tumor_only$V1 %in% purity$sample,]
+  tumor_purity[1:4,1:4]
+  dim(tumor_purity)
+  write.table(tumor_purity, file =  paste0(output.dir, tumor.type, "_", prex,select_sample, ".tsv", sep=''),quote=F, sep = "\t", col.names = F, row.names=F)
   }
 }
 

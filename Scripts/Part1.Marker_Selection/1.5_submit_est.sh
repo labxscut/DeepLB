@@ -53,6 +53,7 @@ for repeat_i in $(seq 1 $validate_time);do
 
         chmod a+x $JOB
         nohup $JOB > ${JOB}.log 2>&1 &
-
+        pids+=($!)
 done
 
+wait "${pids[@]}"

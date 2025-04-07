@@ -39,12 +39,12 @@ find_marker_method = args.choose
 prefix = tumor_type.upper()
 
 ## 1、train cohort and test cohort: 33 paired tumor and 24 CTR and other CRA lihc samples
-root_dir = env_module.root_out_dir + method + "/" + tumor_type + "-" + group
+root_dir = env_module.root_out_dir + method + "/" + purity + "/" + tumor_type + "-" + group
 all_samples_file = env_module.all_samples_file
 all_samples = pd.read_csv(all_samples_file, delimiter='\t', header=None)
 all_samples.columns = ["sample","sample_type","type","group"]
 meta_data_file = env_module.sample_metadata
-meta_data =  pd.read_csv(meta_data_file,delimiter='\t', header=0)
+meta_data = pd.read_excel(meta_data_file)
 list_dir = env_module.sample_list_dir + method + "/" + tumor_type + "/" + group + "/" + purity + "/"
 
 meta_data["Group"].unique()
@@ -60,6 +60,9 @@ for i in range(cohort,rep):
         train_tumor = train_samples[train_samples.iloc[:, 0].str.contains('TCGA')].iloc[:, [0]]
         train_healthy = train_samples[~train_samples.iloc[:, 0].str.contains('TCGA')].iloc[:, [0]]
     test_healthy = all_healthy_blood["Run"][~all_healthy_blood["Run"].isin(train_healthy.iloc[:, 0])]
+    test_tumor = meta_data[meta_data['Group'].str.contains('breast cancer', case=False, na=False)]["Run"] 
+    print(test_tumor)
+    test_sample =  test_healthy.append(test_tumor).drop_duplicates()
 
     list_out_dir = root_dir  + env_module.preprocess_folder +"sample_list/"
     os.makedirs(list_out_dir,exist_ok=True)
@@ -71,7 +74,7 @@ for i in range(cohort,rep):
     train_healthy.to_csv(train_healthy_path,index=False, header=False)
 
     test_file_path = os.path.join(list_out_dir, f"test_{i}.list")
-    test_healthy.to_csv(test_file_path, index=False, header=False)
+    test_sample.to_csv(test_file_path, index=False, header=False)
     print(f"Saved test list to: {list_out_dir}")
 
 

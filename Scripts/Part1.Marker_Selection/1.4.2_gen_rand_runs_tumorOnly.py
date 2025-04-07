@@ -110,7 +110,7 @@ sampleAnnotFile = rootDir + "/Predata/metadata/" + SampleList
  
 
 binNum = 36342  # 42374 #10531
-normalTrainRatio = 0.75
+normalTrainRatio = 1#0.75
 normalType = "plasma_background"
 tumorType = cancer + "_tumor"
 tissueType = cancer2tissue[cancer]
@@ -124,8 +124,8 @@ depthCut = 20  #
 print(
     "load plasma seq data: Dennis Lo 2013 and 2015 (including longitudinal data) and zhou lab data..."
 )
-# seqDir='/u/project/xjzhou/qingjiao/projects/TissueDeconvolution_paper/May18_2018/results/3.extract_reads/all_reads_1sites_with_pos_and_sam'
-seqDir = rootDir + "/Result/1.3_extract_reads/all_reads_1sites_with_pos_and_sam"
+seqDir='/home/yinliang/PROJECT/mMTS/mMTS_result/1.3_cal_methylratio_bins/all_reads_1sites_with_pos_and_sam'
+#seqDir = rootDir + "/Result/1.3_extract_reads/all_reads_1sites_with_pos_and_sam"
 # only load plasma samples information from sample_index
 # file format
 # 1	TBR52	plasma	neuro	tumor

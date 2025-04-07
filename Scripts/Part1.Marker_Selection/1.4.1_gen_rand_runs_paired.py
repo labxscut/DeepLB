@@ -1,5 +1,5 @@
 """
-output:train_list train_betamatrix train_match_matrix test_list test_sample_path test_match_path
+output:train_list train_beta_matrix train_match_matrix test_list test_sample_path test_match_path
 """
 import sys
 import os
@@ -106,7 +106,7 @@ sampleAnnotFile = rootDir + "/Predata/metadata/" + SampleList
 
 
 binNum = 36342  # 42374 #10531
-normalTrainRatio = 0.75
+normalTrainRatio = 1
 normalType = "plasma_background"
 tumorType = cancer + "_tumor"
 matchedNormaltumorType = cancer + "_normal"
@@ -123,8 +123,8 @@ print(
     "load plasma seq data: Dennis Lo 2013 and 2015 (including longitudinal data) and zhou lab data..."
 )
 
-seqDir = rootDir + "/Result/1.3_extract_reads/all_reads_1sites_with_pos_and_sam"
-
+#seqDir = rootDir + "/Result/1.3_extract_reads/all_reads_1sites_with_pos_and_sam"
+seqDir = "/home/yinliang/PROJECT/mMTS/mMTS_result/1.3_cal_methylratio_bins/all_reads_1sites_with_pos_and_sam"
 # only load plasma samples information from sample_index
 # file format
 # 1	TBR52	plasma	neuro	tumor
@@ -137,6 +137,7 @@ seqFileType = {}
 with open(sampleAnnotFile) as f:
     for line in f:
         info = line.rstrip().split("\t")
+        print(info)
         if info[1] == "plasma":
             if info[2] not in seqFileType:
                 seqFileType[info[2]] = []
@@ -152,7 +153,7 @@ for type in seqFileType_backgroud:
     else:
         typeStr = type + "_tumor"
     for sample in seqFileType[type]:
-        if "CTR" in sample:
+        if "CTR" in sample: #need to be change to confirm sample name
             print("\t", sample)
             fileName = sample + ".methy_bins"
             methyDepth = ["NA"] * binNum

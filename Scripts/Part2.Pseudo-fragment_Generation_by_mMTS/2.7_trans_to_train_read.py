@@ -26,23 +26,14 @@ def process_files(input_folder, output_folder):
                 for line in input_file:
                     fields = line.strip().split('\t')
                     if len(fields) == 4 :
-                        # 替换第四列中的数字2为0
                         fields[3] = fields[3].replace('2', '0')
                         updated_line = '\t'.join(fields)
                         if fields[0] == "chrX":
                             continue
                         output_file.write(updated_line + '\n')
-
-                        # 更新统计信息
                         replacements_in_file += line.count('2')
-
-
-                # 将每个文件内的替换次数累加到总替换次数
                 total_replacements += replacements_in_file
 
-                print(f"文件 '{filename}': 替换了 {replacements_in_file} 个2")
-
-    print(f"总共替换了 {total_replacements} 个2")
 
 parser = argparse.ArgumentParser(description='Parameters for threshold/tumor type/marker type/group/rep')
 parser.add_argument('-t', '--tumor',  help='Add the tumor type') #"lihc" "paad" "stad" "brca"

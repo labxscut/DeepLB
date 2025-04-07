@@ -77,7 +77,6 @@ else:
     step0 = f"python 2.0_prepare_files_paired.py -t {tumor_type} -s {threshold}  -r {rep} -l {cohort} -a {method} -g {group} -c {find_marker_method} -p {purity} > {log0}"
 
     
-#创建空的变量
 step1 = ""
 step2 = ""
 step3 = ""
@@ -95,8 +94,7 @@ steps = [
     ("2.5_select_healthy_bam_to_train.py", "step5"),
     ("2.6_select_bam_test_all.py", "step6"),
     ("2.7_trans_to_train_read.py", "step7"),
-    ("2.8_extract_bam_to_reads.py", "step8"),
-    ("2.9_process_MCTAdata.py", "step9")
+    ("2.8_extract_bam_to_reads.py", "step8")
 ]
 
 
@@ -110,7 +108,7 @@ for script, log_prefix in steps:
 
 para1 = [step1,step2,step3,step4]
 para2 = [step5,step6]
-para3 = [step7,step8,step9]
+para3 = [step7,step8]
 
 
 #filter some steps
@@ -130,17 +128,15 @@ print("(0)all steps")
 for key, value in variables.items():
     print(f'{key}: {value}')
 
-#创建一个空列表，用于存储需要删除的变量
 to_remove = []
 
-#根据变量的值查找变量名称，并将需要删除的变量名称添加到列表中
 for para in [para1, para2, para3]:
     for step in para:
         for var_name, var_value in variables.items():
             if var_value == step and var_name in exceptstep:
                 to_remove.append(step)
 print(f"Steps to remove {to_remove}")
-# 从列表中删除需要删除的变量
+
 for remove_step in to_remove:
     for para in [para1, para2, para3]:
         if remove_step in para:

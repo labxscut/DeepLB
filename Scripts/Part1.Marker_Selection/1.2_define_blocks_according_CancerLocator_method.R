@@ -48,6 +48,9 @@ require(gplots)
 library(dplyr)
 args <- commandArgs(trailingOnly = TRUE)  
 current_path <- args[1] 
+window.size <- args[2] #100
+min.probe.number <- args[3] #3
+
 output.dir <- paste0(current_path,"/Result/1.2_define_bins/")
 dir.create(output.dir)
 CpG.probe.tmp <- read.table(paste0(current_path,"/Predata/450K/illuminaMethyl450_hg38_GDC"), header=F, stringsAsFactors = F) 
@@ -58,8 +61,7 @@ CpG.probe.sorted <- CpG.probe[probe.reorder.ind, ]
 chr.names <- setdiff(unique(CpG.probe[,3]), '*')
 
 ## for each chr, using "sliding window" method to merge the adjacent probes to block (at least 3 probes)
-window.size <- 100
-min.probe.number <- 3
+
 block.chr <- NULL
 block.start <- NULL
 block.end <- NULL
@@ -71,7 +73,7 @@ block.gene.no <- NULL
 for (chr in chr.names){
   print(chr)
   ind <- which(CpG.probe.sorted[, 3] == chr)
-  print(length(ind))
+  #print(length(ind))
   chr.probe.coordinates <- CpG.probe.sorted[ind, 4]
   chr.probe.names <- CpG.probe.sorted[ind, 1]
   chr.probe.genes <- CpG.probe.sorted[ind, 2]

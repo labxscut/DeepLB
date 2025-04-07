@@ -55,7 +55,7 @@ for i in range(cohort,rep):
 
     samples = input_sample(i)
     for s in samples:
-        bam_dir = wgbs_dir + "/normal/" 
+        bam_dir = wgbs_dir + "/" + env_module.backgroud_cohort #+ "/normal/"  #plasma train data dir
         sample_file = bam_dir + s.strip() + ".bam"
         out_name = out_dir + s.strip() + "_process.bam"
         os.system('samtools view -b  -h ' + sample_file + ' -L "' + bed_name + '" >' + out_name )

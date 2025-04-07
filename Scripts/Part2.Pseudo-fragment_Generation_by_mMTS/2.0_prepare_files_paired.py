@@ -47,7 +47,7 @@ all_samples_file = env_module.all_samples_file
 all_samples = pd.read_csv(all_samples_file, delimiter='\t', header=None)
 all_samples.columns = ["sample","sample_type","type","group"]
 meta_data_file = env_module.sample_metadata
-meta_data =  pd.read_csv(meta_data_file,delimiter='\t', header=0)
+meta_data = pd.read_excel(meta_data_file)
 list_dir = env_module.sample_list_dir + method + "/" + tumor_type + "/" + group + "/"
 
 meta_data["Group"].unique()
@@ -59,6 +59,10 @@ for i in range(cohort,rep):
     train_tumor = train_samples.loc[~train_samples[1].isna(),0]
     train_healthy = train_samples.loc[train_samples[1].isna(),0]
     test_healthy = all_healthy_blood["Run"][~meta_data["Run"].isin(train_healthy)]
+    #!!! need to change tumor sample index
+    test_tumor = meta_data[meta_data['Group'].str.contains('breast cancer', case=False, na=False)]["Run"] 
+    print(test_tumor)
+    test_sample =  test_healthy.append(test_tumor).drop_duplicates()
 
     list_out_dir = root_dir  + env_module.preprocess_folder +"sample_list/"
     os.makedirs(list_out_dir,exist_ok=True)
@@ -69,8 +73,9 @@ for i in range(cohort,rep):
     train_healthy_path = os.path.join(list_out_dir,f"train_healthy_{i}.list")
     train_healthy.to_csv(train_healthy_path,index=False, header=False)
 
+
     test_file_path = os.path.join(list_out_dir, f"test_{i}.list")
-    test_healthy.to_csv(test_file_path, index=False, header=False)
+    test_sample.to_csv(test_file_path, index=False, header=False)
     print(f"Saved test list to: {list_out_dir}")
 
 
