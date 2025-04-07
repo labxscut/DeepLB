@@ -172,6 +172,7 @@ Result/3.ResTran_results
 ``` 
 
 # Use
+```
 Usage: DeepLB_pipeline.sh [OPTIONS]
 Options (full names and abbreviations):
   --root_dir, -r <ROOT_DIR>          : Root directory of the project
@@ -193,7 +194,7 @@ Options (full names and abbreviations):
   --meta, -x <FILE>               : Meta file path
   --dry_run, -d|-n                : Enable dry-run mode
   --help, -h                      : Display this help message
-
+```
 ```
 #Example
 # Only part1
