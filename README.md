@@ -1,15 +1,15 @@
-# DeepBL
+# DeepLB
 ## Overview
 In this study, we introduce our novel deep learning model, DeepLB, developed for early cancer detection through liquid biopsy. This model utilizes pseudo-fragment data generated from 450K methylation array data of tumor tissues, alongside cfDNA whole-genome bisulfite sequencing (WGBS) data from healthy donors, to enhance diagnostic capabilities. DeepLB consists of four key modules: feature selection, methylation Microarray-To-Sequence data converter (mMTS), deep learning model (ResTran), and cancer score estimation. We analyzed cancer-specific features from tumor tissue and healthy plasma WGBS data, generating tumor pseudo-fragment data through the mMTS converter. The ResTran model, which integrates residual networks with Transformer architecture, accurately identifies tumor-derived DNA fragments from cfDNA methylation sequencing data. The workflow in DeepLB is illustrated in the figure below.
 
 ![Alt text](png1.png)
+*Figure 1: Overview of the DeepLB framework.*
 
 ![Alt text](png2.png)
-
-# DeepLB
+*Figure 2: The computational pipeline of DeepLB.*
 
 ## Table of Contents
-- [DeepBL](#deepbl)
+- [DeepLB](#deeplb)
   - [Overview](#overview)
 - [DeepLB](#deeplb)
   - [Table of Contents](#table-of-contents)
@@ -25,6 +25,13 @@ In this study, we introduce our novel deep learning model, DeepLB, developed for
 
 
 ## Installation
+
+### Prerequisites
+- R >= 4.0
+- Python >= 3.9
+- PyTorch >= 1.10
+
+### Install DeepLB R package
 ```R
 install.packages('devtools')
 devtools::install_github("labxscut/DeepLB")
@@ -38,11 +45,12 @@ Public API docs:
 - https://labxscut.github.io/deeplb/
 
 ```bash
+pip install -e .
+
 # From the repo root
 python -m deeplb -- -h
 
 # Optional editable install for a `deeplb` command
-pip install -e .
 deeplb -- -h
 ```
 
@@ -273,16 +281,27 @@ bash DeepLB_pipeline.sh -r /home/yinliang/PROJECT/DeepLB -t lihc -g TH -s top30 
 
 # Citation
 
-**If you use this code for your research, please cite paper:**
+## Primary citation
+If you use DeepLB in your research, please cite the main paper:
 
-Yin Liang, Zhanyu Liang, Xiaoxin Yao, Yajie Guo, Xufeng Kong, Guangquan Zhang, Jia-Bin Wang, Kaida Ning, Yulin Liu, Tong Wang, Qingjiao Li, Li C. Xia. DeepLB: Noninvasive Early Cancer Detection via Deep Learning on Pseudo-Fragments with Methylation and Sequence Features. In press.
+> Yin Liang, Zhanyu Liang, Xiaoxin Yao, Yajie Guo, Xufeng Kong, Guangquan Zhang,
+> Jia-Bin Wang, Kaida Ning, Yulin Liu, Tong Wang, Qingjiao Li, Li C. Xia.
+> **DeepLB: Noninvasive Early Cancer Detection via Deep Learning on
+> Pseudo-Fragments with Methylation and Sequence Features.** *In press.*
 
-Kang S, Li Q, Chen Q, Zhou Y, Park S, Lee G, Grimes B, Krysan K, Yu M, Wang W, Alber F, Sun F, Dubinett SM, Li W, Zhou XJ. CancerLocator: non-invasive cancer diagnosis and tissue-of-origin prediction using methylation profiles of cell-free DNA. Genome Biol. 2017 Mar 24;18(1):53. doi: 10.1186/s13059-017-1191-5. PMID: 28335812; PMCID: PMC5364586.
+## Required citations for integrated methods
+DeepLB builds upon the following methods. If your analysis uses their specific
+modules, please also cite the corresponding works:
 
-Li W, Li Q, Kang S, Same M, Zhou Y, Sun C, Liu CC, Matsuoka L, Sher L, Wong WH, Alber F, Zhou XJ. CancerDetector: ultrasensitive and non-invasive cancer detection at the resolution of individual reads using cell-free DNA methylation sequencing data. Nucleic Acids Res. 2018 Sep 6;46(15):e89. doi: 10.1093/nar/gky423. PMID: 29897492; PMCID: PMC6125664.
+| Method | Module / Origin | Citation |
+|--------|----------------|----------|
+| CancerLocator | CpG cluster definition and marker selection framework | Kang S, Li Q, Chen Q, et al. *Genome Biol.* 2017;18:53. DOI: 10.1186/s13059-017-1191-5 |
+| CancerDetector | Probabilistic read-level scoring model | Li W, Li Q, Kang S, et al. *Nucleic Acids Res.* 2018;46:e89. DOI: 10.1093/nar/gky423 |
+| DISMIR | Deep learning architecture reference (CNN_LSTM_CNN baseline) | Li J, Wei L, Zhang X, et al. *Brief Bioinform.* 2021;22:bbab250. DOI: 10.1093/bib/bbab250 |
 
 # Acknowledgement
 
-Our models constuction references the code of DISMIR: https://github.com/XWangLabTHU/DISMIR
-Li J, Wei L, Zhang X, Zhang W, Wang H, Zhong B, Xie Z, Lv H, Wang X. DISMIR: Deep learning-based noninvasive cancer detection by integrating DNA sequence and methylation information of individual cell-free DNA reads. Brief Bioinform. 2021 Nov 5;22(6):bbab250. doi: 10.1093/bib/bbab250. PMID: 34245239; PMCID: PMC8575022.
+Our model implementation references the open‑source code of DISMIR
+(https://github.com/XWangLabTHU/DISMIR). We thank the authors for making their
+work publicly available.
 
