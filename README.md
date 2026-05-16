@@ -34,6 +34,9 @@ devtools::install_github("labxscut/DeepLB")
 DeepLB now also includes a thin Python wrapper that calls the existing shell
 pipeline without changing its behavior.
 
+Public API docs:
+- https://labxscut.github.io/deeplb/
+
 ```bash
 # From the repo root
 python -m deeplb -- -h
