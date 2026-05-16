@@ -14,6 +14,7 @@ In this study, we introduce our novel deep learning model, DeepLB, developed for
 - [DeepLB](#deeplb)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
+  - [Code organization by language](#code-organization-by-language)
   - [Prepare data](#prepare-data)
     - [Warning!!](#warning)
   - [Part1: Marker Selection](#part1-marker-selection)
@@ -93,6 +94,42 @@ Predata/
 
 ### Warning!!
 Before use mMTS, please check the env_module.py and make sure each file path is right
+
+## Code organization by language
+DeepLB is a mixed-language pipeline. It is organized by pipeline stage, and each
+stage combines R/Python/shell differently.
+
+- **Shell orchestration (`.sh`)**
+  - Top-level pipeline entrypoint: `Scripts/DeepLB_pipeline.sh`
+  - Stage wrappers/job submit scripts:
+    - `Scripts/Part1.Marker_Selection/*.sh`
+    - `Scripts/Part3.ResTran_model_training/ResTran.sh`
+  - Role: glue code that sequences steps and passes arguments to R/Python tools.
+
+- **R analysis/statistics (`.R`)**
+  - Mainly in `Scripts/Part1.Marker_Selection/`
+  - Typical tasks: 450K preprocessing, bin-level methylation ratio computation,
+    parameter estimation.
+  - Examples: `1.1_reformat_TCGA.R`, `1.3.1_get_methylation_ratio_blocks_TCGA_paired.R`,
+    `1.5_para_est_mom_mc.R`.
+
+- **Python processing/modeling (`.py`)**
+  - Part1 helpers in `Scripts/Part1.Marker_Selection/` (selection/splitting helpers)
+  - Part2 mMTS pipeline in `Scripts/Part2.Pseudo-fragment_Generation_by_mMTS/`
+  - Part3 ResTran training/inference in `Scripts/Part3.ResTran_model_training/`
+  - Role: data transformation, pseudo-fragment generation, deep model train/predict.
+
+- **C/C++ performance utilities**
+  - `codes/reads_deconv/` (compiled utilities used by older/low-level steps)
+  - Role: read/binning/probability calculations for methylation read processing.
+
+- **Python compatibility API layer (new, optional)**
+  - `deeplb/` (`pipeline.py`, `cli.py`)
+  - Role: thin Python API/CLI wrappers that call the existing shell pipeline
+    without changing core behavior.
+
+In short: **Part1 is R+Python+shell**, **Part2 is mostly Python (+ shell entry)**,
+**Part3 is Python model code + shell runner**, and **`codes/` keeps lower-level C/C++ tools**.
 
 ## Part1: Marker Selection
 - 1.1 Prepare 450K data
@@ -234,6 +271,10 @@ bash DeepLB_pipeline.sh -r /home/yinliang/PROJECT/DeepLB -t lihc -g TH -s top30 
 # Citation
 
 **If you use this code for your research, please cite paper:**
+
+Yin Liang, Zhanyu Liang, Xiaoxin Yao, Yajie Guo, Xufeng Kong, Guangquan Zhang, Jia-Bin Wang, Kaida Ning, Yulin Liu, Tong Wang, Qingjiao Li, Li C. Xia. DeepLB: Noninvasive Early Cancer Detection via Deep Learning on Pseudo-Fragments with Methylation and Sequence Features. In press.
+
+Source manuscript draft: `/home/lcx/work/advisee/liy/deeplb/manuscript.260516.md`
 
 Kang S, Li Q, Chen Q, Zhou Y, Park S, Lee G, Grimes B, Krysan K, Yu M, Wang W, Alber F, Sun F, Dubinett SM, Li W, Zhou XJ. CancerLocator: non-invasive cancer diagnosis and tissue-of-origin prediction using methylation profiles of cell-free DNA. Genome Biol. 2017 Mar 24;18(1):53. doi: 10.1186/s13059-017-1191-5. PMID: 28335812; PMCID: PMC5364586.
 
