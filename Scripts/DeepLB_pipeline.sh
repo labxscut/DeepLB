@@ -230,7 +230,7 @@ run_part2(){
 
 # Part3: Deep Learning (ResTran) model training
 run_part3(){
-    cd ../Part3.ResTran_model_training
+    cd "${ROOT_DIR}/Scripts/Part3.ResTran_model_training"
     echo "Running Part3: Deep Learning (ResTran) model training"
     execute_or_print "conda activate part3_env"  # Ensure the correct environment is activated
     execute_or_print "bash ${ROOT_DIR}/Scripts/Part3.ResTran_model_training/ResTran.sh -i ${ROOT_DIR} -s ${VALIDATION} -t ${TUMOR} -g ${GROUP} -m ${MARKER_TYPE} -c ${GENERATION_THRESHOLD} -v ${VALIDATION}"

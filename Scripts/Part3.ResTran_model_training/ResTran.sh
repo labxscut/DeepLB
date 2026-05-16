@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while getopts "i:l:t:g:m:c:v:u" flag
+while getopts "i:s:l:t:g:m:c:v:u" flag
 do
     case "${flag}" in
         i) root_dir=${OPTARG};;

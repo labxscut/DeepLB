@@ -28,6 +28,20 @@ In this study, we introduce our novel deep learning model, DeepLB, developed for
 install.packages('devtools')
 devtools::install_github("labxscut/DeepLB")
 ```
+
+### Compatibility-first Python wrapper (new, optional)
+DeepLB now also includes a thin Python wrapper that calls the existing shell
+pipeline without changing its behavior.
+
+```bash
+# From the repo root
+python -m deeplb -- -h
+
+# Optional editable install for a `deeplb` command
+pip install -e .
+deeplb -- -h
+```
+
 ```
 ../DeepLB/
 ├── env
@@ -39,6 +53,9 @@ devtools::install_github("labxscut/DeepLB")
     ├── Part1.Marker_Selection
     ├── Part2.Pseudo-fragment_Generation_by_mMTS
     └── Part3.ResTran_model_training
+├── deeplb # compatibility-first Python API/CLI wrapper
+├── docs
+├── vignettes
 ```
 
 ## Prepare data
@@ -194,6 +211,12 @@ Options (full names and abbreviations):
   --meta, -x <FILE>               : Meta file path
   --dry_run, -d|-n                : Enable dry-run mode
   --help, -h                      : Display this help message
+```
+
+Compatibility wrapper usage:
+```bash
+python -m deeplb -- -r /path/to/DeepLB -t lihc -g TH -u part3 -q 0.1 -k hyper -v 1
+python -m deeplb --dry-run -- -r /path/to/DeepLB -t lihc -g TH -u part3 -q 0.1 -k hyper -v 1
 ```
 ```
 #Example

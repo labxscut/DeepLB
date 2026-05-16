@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deeplb"
+version = "0.1.0"
+description = "Compatibility-first wrappers for the DeepLB pipeline"
+readme = "README.md"
+requires-python = ">=3.9"
+
+[project.scripts]
+deeplb = "deeplb.cli:main"
