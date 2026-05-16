@@ -274,11 +274,11 @@ bash DeepLB_pipeline.sh -r /home/yinliang/PROJECT/DeepLB -t lihc -g TH -s top30 
 
 Yin Liang, Zhanyu Liang, Xiaoxin Yao, Yajie Guo, Xufeng Kong, Guangquan Zhang, Jia-Bin Wang, Kaida Ning, Yulin Liu, Tong Wang, Qingjiao Li, Li C. Xia. DeepLB: Noninvasive Early Cancer Detection via Deep Learning on Pseudo-Fragments with Methylation and Sequence Features. In press.
 
-Source manuscript draft: `/home/lcx/work/advisee/liy/deeplb/manuscript.260516.md`
-
 Kang S, Li Q, Chen Q, Zhou Y, Park S, Lee G, Grimes B, Krysan K, Yu M, Wang W, Alber F, Sun F, Dubinett SM, Li W, Zhou XJ. CancerLocator: non-invasive cancer diagnosis and tissue-of-origin prediction using methylation profiles of cell-free DNA. Genome Biol. 2017 Mar 24;18(1):53. doi: 10.1186/s13059-017-1191-5. PMID: 28335812; PMCID: PMC5364586.
 
 Li W, Li Q, Kang S, Same M, Zhou Y, Sun C, Liu CC, Matsuoka L, Sher L, Wong WH, Alber F, Zhou XJ. CancerDetector: ultrasensitive and non-invasive cancer detection at the resolution of individual reads using cell-free DNA methylation sequencing data. Nucleic Acids Res. 2018 Sep 6;46(15):e89. doi: 10.1093/nar/gky423. PMID: 29897492; PMCID: PMC6125664.
+
+# Acknowledgement
 
 Our models constuction references the code of DISMIR: https://github.com/XWangLabTHU/DISMIR
 Li J, Wei L, Zhang X, Zhang W, Wang H, Zhong B, Xie Z, Lv H, Wang X. DISMIR: Deep learning-based noninvasive cancer detection by integrating DNA sequence and methylation information of individual cell-free DNA reads. Brief Bioinform. 2021 Nov 5;22(6):bbab250. doi: 10.1093/bib/bbab250. PMID: 34245239; PMCID: PMC8575022.
