@@ -3,7 +3,7 @@
 # Parameters
 DRY_RUN=false
 # Part1 parameters
-ROOT_DIR="" # /home/yinliang/PROJECT/DeepLB
+ROOT_DIR="" # /path/to/DeepLB
 TUMOR="" # lihc brca stad
 GROUP="" # TH MH PH
 SUBSAMPLE="" # TH:top30 top50 MH:sub30 sub50
