@@ -29,28 +29,22 @@ In this study, we introduce our novel deep learning model, DeepLB, developed for
 ### Prerequisites
 - R >= 4.0
 - Python >= 3.9
-- PyTorch >= 1.10
 
-### Install DeepLB R package
-```R
-install.packages('devtools')
-devtools::install_github("labxscut/DeepLB")
-```
-
-### Compatibility-first Python wrapper (new, optional)
-DeepLB now also includes a thin Python wrapper that calls the existing shell
-pipeline without changing its behavior.
-
-Public API docs:
-- https://labxscut.github.io/deeplb/
-
+### Install DeepLB: R package + Python wrapper
 ```bash
+# Install the R package
+Rscript install_packages.R
+
+# (Optional) Install the Python wrapper (new, compatibility-first)
+# The wrapper simply calls the existing shell pipeline without changing its behavior.
+# Public API docs: https://labxscut.github.io/deeplb/
+
 pip install -e .
 
-# From the repo root
+# From the repo root, you can test it with:
 python -m deeplb -- -h
 
-# Optional editable install for a `deeplb` command
+# For an editable install that provides a `deeplb` command:
 deeplb -- -h
 ```
 
@@ -72,6 +66,7 @@ deeplb -- -h
 
 ## Prepare data
 !!!!! The data should be prepare before Process DeepLB
+[GDC Xena Hub (TCGA-LIHC Methylation Data Entry)](https://xenabrowser.net/datapages/?host=https%3A%2F%2Fgdc.xenahubs.net&removeHub=https%3A%2F%2Fxena.treehouse.gi.ucsc.edu%3A443)
 ```
 Predata/
 ├── 450K #Download from GEO and TCGA
@@ -224,7 +219,7 @@ Result/2.simulation_result/
 ```
 Scripts/Part3.ResTran_model_training/
 ├── training.py
-├── 3models.py
+├── models.py
 ├── predict_reads_source.py
 ├── cal_risk.py
 ├── ResTran.sh
@@ -232,8 +227,9 @@ Result/3.ResTran_results
 ├── train_result
 │   └── lihc-PH
 │       ├── 1_0.4
-└── train_result
-│       ├── 1_0.4
+└── test_result
+  └── lihc-PH
+    ├── 1_0.4
 ``` 
 
 # Use
@@ -257,7 +253,7 @@ Options (full names and abbreviations):
   --generation_threshold, -q <THRESHOLD> : Generation threshold (selected from marker selection threshold)
   --fragment_length, -l <LENGTH>  : Fragment length for pseudo-fragment generation
   --meta, -x <FILE>               : Meta file path
-  --dry_run, -d|-n                : Enable dry-run mode
+  --dry_run, -d                   : Enable dry-run mode
   --help, -h                      : Display this help message
 ```
 
@@ -267,15 +263,15 @@ python -m deeplb -- -r /path/to/DeepLB -t lihc -g TH -u part3 -q 0.1 -k hyper -v
 python -m deeplb --dry-run -- -r /path/to/DeepLB -t lihc -g TH -u part3 -q 0.1 -k hyper -v 1
 ```
 ```
-#Example
+#Examples
 # Only part1
-bash DeepLB_pipeline.sh -r /home/yinliang/PROJECT/DeepLB -t lihc -g TH -s top30 -a all_samples_annotation.txt -n background_for_train.txt -m "0.1 0.15 0.2" -v 1 -w 100 -p 3 -u part1
+bash DeepLB_pipeline.sh -r /path/to/DeepLB -t lihc -g TH -s top30 -a all_samples_annotation.txt -n background_for_train.txt -m "0.1 0.15 0.2" -v 1 -w 100 -p 3 -u part1
 # Only part2
-bash DeepLB_pipeline.sh -r /home/yinliang/PROJECT/DeepLB -t lihc -g TH -q 0.1 -k "hyper" -v 1 -s top30 -b begin_list.txt -c 3 -l 66 -u part2
+bash DeepLB_pipeline.sh -r /path/to/DeepLB -t lihc -g TH -q 0.1 -k "hyper" -v 1 -s top30 -b begin_list.txt -c 3 -l 66 -u part2
 # Only part3
-bash DeepLB_pipeline.sh -r /home/yinliang/PROJECT/DeepLB -t lihc -g TH -q 0.1 -k "hyper" -v 1 -u part3
+bash DeepLB_pipeline.sh -r /path/to/DeepLB -t lihc -g TH -q 0.1 -k "hyper" -v 1 -u part3
 # ALL
-bash DeepLB_pipeline.sh -r /home/yinliang/PROJECT/DeepLB -t lihc -g TH -s top30 -a all_samples_annotation.txt -n background_for_train.txt -m "0.1 0.15 0.2" -v 1 -w 100 -p 3 -q 0.1 -k marker_type -b begin_list.txt -c 30 -l 66 -u all
+bash DeepLB_pipeline.sh -r /path/to/DeepLB -t lihc -g TH -s top30 -a all_samples_annotation.txt -n background_for_train.txt -m "0.1 0.15 0.2" -v 1 -w 100 -p 3 -q 0.1 -k marker_type -b begin_list.txt -c 30 -l 66 -u all
 
 ```
 

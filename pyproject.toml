@@ -8,6 +8,19 @@ version = "0.1.0"
 description = "Compatibility-first wrappers for the DeepLB pipeline"
 readme = "README.md"
 requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "scipy",
+    "statsmodels",
+    "pandas",
+    "tqdm",
+    "pysam",
+    "biopython",
+    "tensorflow",  
+]
 
 [project.scripts]
 deeplb = "deeplb.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["deeplb"]

@@ -1,0 +1,10 @@
+install.packages(c(
+  "dplyr",
+  "reshape2",
+  "data.table",
+  "InfiniumPurify",  
+  "readxl",
+  "caret",
+  "gplots",
+  "MASS"
+))

@@ -42,7 +42,7 @@ usage() {
     echo "  --generation_threshold, -q <THRESHOLD> : Generation threshold (selected from marker selection threshold)"
     echo "  --fragment_length, -l <LENGTH>  : Fragment length for pseudo-fragment generation"
     echo "  --meta, -x <FILE>               : Meta file path"
-    echo "  --dry_run, -d|-n                : Enable dry-run mode"
+    echo "  --dry_run, -d                   : Enable dry-run mode"
     echo "  --help, -h                      : Display this help message"
     exit 1
 }
