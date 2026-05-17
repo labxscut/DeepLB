@@ -32,6 +32,8 @@ In this study, we introduce our novel deep learning model, DeepLB, developed for
 - Python >= 3.9
 
 ### Install DeepLB: R package + Python wrapper
+Installs the R analysis package and an optional Python CLI wrapper to run the pipeline.
+
 ```bash
 # Install the R package
 Rscript install_packages.R
@@ -276,6 +278,12 @@ bash DeepLB_pipeline.sh -r /path/to/DeepLB -t lihc -g TH -q 0.1 -k "hyper" -v 1 
 bash DeepLB_pipeline.sh -r /path/to/DeepLB -t lihc -g TH -s top30 -a all_samples_annotation.txt -n background_for_train.txt -m "0.1 0.15 0.2" -v 1 -w 100 -p 3 -q 0.1 -k marker_type -b begin_list.txt -c 30 -l 66 -u all
 
 ```
+
+For detailed function documentation of the scripts inside `Scripts/` (including R, Python, and shell scripts), please refer to:
+
+- **Public API Docs (Python wrapper & pipeline scripts):** [https://labxscut.github.io/deeplb/](https://labxscut.github.io/deeplb/)
+
+This documentation covers the usage of the `deeplb` Python package as well as the individual scripts used in Part1, Part2, and Part3.
 
 # Citation
 
