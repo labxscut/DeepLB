@@ -9,17 +9,14 @@ In this study, we introduce our novel deep learning model, DeepLB, developed for
 *Figure 2: The computational pipeline of DeepLB.*
 
 ## Table of Contents
-- [DeepLB](#deeplb)
-  - [Overview](#overview)
-- [DeepLB](#deeplb)
-  - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-  - [Code organization by language](#code-organization-by-language)
-  - [Prepare data](#prepare-data)
-    - [Warning!!](#warning)
-  - [Part1: Marker Selection](#part1-marker-selection)
-  - [Part2: Pseudo-fragment Generation by mMTS](#part2-pseudo-fragment-generation-by-mmts)
-  - [Part3: Deep Learning (ResTran) model training](#part3-deep-learning-restran-model-training)
+- [Overview](#overview)
+- [Installation](#installation)
+- [Code organization by language](#code-organization-by-language)
+- [Prepare data](#prepare-data)
+  - [Warning!!](#warning)
+- [Part1: Marker Selection](#part1-marker-selection)
+- [Part2: Pseudo-fragment Generation by mMTS](#part2-pseudo-fragment-generation-by-mmts)
+- [Part3: Deep Learning (ResTran) model training](#part3-deep-learning-restran-model-training)
 - [Use](#use)
 - [Citation](#citation)
 
