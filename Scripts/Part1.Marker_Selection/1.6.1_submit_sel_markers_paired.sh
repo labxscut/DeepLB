@@ -1,4 +1,5 @@
 
+# Summary: Run paired marker selection for thresholds and add complementary bins.
 checkMakeDirectory(){
         echo -e "checking directory: $1"
         if [ ! -e "$1" ]; then
@@ -18,7 +19,7 @@ while getopts "i:g:t:v:c:" opt; do
 	   ;;
 	c) diff_min_list="$OPTARG"
 	   ;;
-    \?) echo "无效的选项: -$OPTARG" >&2
+	\?) echo "Invalid option: -$OPTARG" >&2
         exit 1
        ;;
   esac

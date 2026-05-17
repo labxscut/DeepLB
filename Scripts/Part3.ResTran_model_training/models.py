@@ -1,3 +1,4 @@
+"""Define neural network architectures used by ResTran training."""
 import numpy as np
 import random
 import os

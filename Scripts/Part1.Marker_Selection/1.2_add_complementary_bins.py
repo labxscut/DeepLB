@@ -1,3 +1,4 @@
+"""Add complementary genomic bins to a biomarker feature file."""
 # Modify from Wenyuan's version
 # py2 to py3, change print to print()
 import sys, argparse, os

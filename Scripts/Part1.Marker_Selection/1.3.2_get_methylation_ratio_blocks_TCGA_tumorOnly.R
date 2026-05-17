@@ -1,3 +1,4 @@
+# Summary: Compute block methylation ratios for tumor-only samples with purity filtering.
 # for tumorOnly method
 library("data.table")
 rm(list = ls())

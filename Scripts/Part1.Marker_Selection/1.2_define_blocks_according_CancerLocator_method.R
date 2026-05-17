@@ -1,3 +1,4 @@
+# Summary: Define CpG blocks with sliding windows and write block tables.
 rm(list=ls())
 options(stringsAsFactors=F)
 

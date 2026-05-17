@@ -1,4 +1,5 @@
-"""
+"""Generate paired random-run train/test splits and load data inputs.
+
 output:train_list train_beta_matrix train_match_matrix test_list test_sample_path test_match_path
 """
 import sys

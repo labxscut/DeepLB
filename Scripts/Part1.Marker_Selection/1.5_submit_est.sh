@@ -1,3 +1,4 @@
+# Summary: Submit parameter estimation jobs for each random run.
 #updata 20240311
 get_line(){
   sed -n ''$2'p' $1
@@ -25,7 +26,7 @@ while getopts "i:g:t:s:v:n:" opt; do
                 ;;
         n) thre_type="$OPTARG"
                 ;;
-    \?) echo "无效的选项: -$OPTARG" >&2
+        \?) echo "Invalid option: -$OPTARG" >&2
         exit 1
        ;;
   esac

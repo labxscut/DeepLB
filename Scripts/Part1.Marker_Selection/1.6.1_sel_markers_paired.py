@@ -1,3 +1,4 @@
+"""Select markers for the paired method using differential criteria."""
 import sys
 import os
 import re

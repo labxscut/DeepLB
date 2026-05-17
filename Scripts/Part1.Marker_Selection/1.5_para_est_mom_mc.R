@@ -1,3 +1,4 @@
+# Summary: Estimate beta distribution parameters by method of moments in parallel.
 library(MASS)
 library(parallel)
 set.seed(2016)

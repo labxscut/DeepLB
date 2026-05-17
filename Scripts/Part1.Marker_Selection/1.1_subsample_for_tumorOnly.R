@@ -1,3 +1,4 @@
+# Summary: Select tumor-only samples by purity and save lists/plots.
 # select different sample by tumor purity
 rm(list = ls())  
 args <- commandArgs(trailingOnly = TRUE) 

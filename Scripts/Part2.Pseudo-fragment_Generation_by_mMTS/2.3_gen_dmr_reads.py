@@ -1,4 +1,5 @@
-"""
+"""Generate simulated reads from DMR reference fasta files.
+
 Author: Yin Liang
 Date: 10/16/2024
 """
@@ -16,7 +17,7 @@ parser.add_argument('-t', '--tumor',  help='Add the tumor type') #"lihc" "paad" 
 parser.add_argument('-m', '--marker', help='Marker type')#"hyper" "hypo"
 parser.add_argument('-s', '--threshold',  help='Subtract the numbers') #"0.15" "0.25"
 parser.add_argument('-g', '--group', help='Divide the numbers')#"allsample" " onlylow" "onlyhigh"
-parser.add_argument('-a', '--approach',  help='Divide the numbers') #method :"paied" or "tumoronly",默认paired不加任何标签
+parser.add_argument('-a', '--approach',  help='Divide the numbers') # method: "paired" or "tumoronly"; default paired without extra tag
 parser.add_argument('-r', '--rep',  help='Divide the numbers') #total list num
 parser.add_argument('-l', '--cohort',  help='Divide the numbers') #list
 parser.add_argument('-L', '--Length',  help='Divide the numbers') #simulated parameter 3
@@ -65,7 +66,7 @@ def generate_read(fasta_records, output_file):
         # print(start,end,sequence)
         S = int(D * R / L)
         positions = random.sample(range(R - L - 1), S)
-        # 原：positions = [random.randint(0, 500 - L -1 ) for _ in range(S)]
+        # Original: positions = [random.randint(0, 500 - L -1 ) for _ in range(S)]
         for position in positions:
             fi_start = start + position
             fi_end = fi_start + L
@@ -84,7 +85,7 @@ def generate_read(fasta_records, output_file):
                 pass
             fragments[fragment_pos] = [fragment_sequence[:-1], fragment_methy[:-1]]
 
-    # 将生成的片段写入输出文件
+    # Write generated fragments to output file
     with open(output_file, "w") as output_file:
         for key, value in fragments.items():
             methy = "".join([str(x) for x in value[1]])

@@ -1,3 +1,4 @@
+# Summary: Extract methylation reads and bins from normal WGBS BAMs.
 # FOR processing normal WGBS bam file
 get_line(){
   sed -n ''$2'p' $1
@@ -17,7 +18,7 @@ while getopts "i:s:" opt; do
        ;;
 	s) sample_list="$OPTARG"
 	   ;;
-    \?) echo "无效的选项: -$OPTARG" >&2
+    \?) echo "Invalid option: -$OPTARG" >&2
         exit 1
        ;;
   esac

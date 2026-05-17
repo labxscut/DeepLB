@@ -1,4 +1,5 @@
-"""
+"""Prepare sample lists and DMR inputs for the paired mMTS pipeline.
+
 Author: Yin Liang
 Date: 10/16/2024
 """
@@ -18,7 +19,7 @@ parser = argparse.ArgumentParser(description='Parameters for threshold/tumor typ
 parser.add_argument('-t', '--tumor', help='Add the tumor type') #"lihc" "paad" "stad" "brca"
 parser.add_argument('-s', '--threshold', help='Subtract the numbers') #"0.15" "0.25"
 parser.add_argument('-g', '--group', help='Divide the numbers')##"TH" "MH" "PH"
-parser.add_argument('-a', '--approach', help='Divide the numbers') #method :"paied" or "tumoronly",默认paired不加任何标签
+parser.add_argument('-a', '--approach', help='Divide the numbers') # method: "paired" or "tumoronly"; default paired without extra tag
 parser.add_argument('-r', '--rep', help='Divide the numbers') #total list num
 parser.add_argument('-l', '--cohort', help='Divide the numbers') #list
 parser.add_argument('-c', '--choose', help='Divide the numbers', default="freq-diff") #freq-diff mean-diff
@@ -92,7 +93,7 @@ for i in tqdm(range(cohort, rep), desc="Processing files"):
         next(m)
         for line in tqdm(m, desc=f"Processing file {marker_file}", leave=False):
             info = line.rstrip().split("\t")
-            if info[1] == "chrY" or info[1] == "chrX":#排除性染色体
+            if info[1] == "chrY" or info[1] == "chrX":# exclude sex chromosomes
                 continue
             else:
                 if info[4] == "hyper":

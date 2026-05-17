@@ -1,4 +1,5 @@
-"""
+"""Define paths and constants for the mMTS pipeline.
+
 Author: Yin Liang
 Date: 20250407
 define the file path of proccess

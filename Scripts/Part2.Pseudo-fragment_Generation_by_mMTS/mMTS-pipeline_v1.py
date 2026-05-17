@@ -1,4 +1,5 @@
-"""
+"""Run the mMTS pseudo-fragment pipeline with logging and step control.
+
 a standard pipeline for generating Pseudo-fragment by mMTS
 Author: Yin Liang
 Date: 3/25/2025
@@ -13,7 +14,7 @@ import os
 import logging
 import env_module
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -45,17 +46,17 @@ method = args.approach
 group = args.group
 D = args.Depth
 L = args.Length
-exceptstep = set(args.values)  # 转换为集合以便快速查找
+exceptstep = set(args.values)  # Convert to set for faster lookup
 find_marker_method = args.choose
 purity = args.purity if args.purity else ""
 
-# 创建日志目录
+# Create log directory
 log_dir = os.path.join(env_module.root_out_dir, method, purity, f"{tumor_type}-{group}", "log", f"{threshold}_{marker_type}")
 os.makedirs(log_dir, exist_ok=True)
 
 start_time = time.time()
 
-# 定义步骤命令
+# Define step commands
 steps = [
     ("2.0_prepare_files_tumorOnly.py" if method == "tumorOnly" else "2.0_prepare_files_paired.py", "step0"),
     ("2.1_gen_DMRref_gene_more1.py", "step1"),
@@ -77,10 +78,10 @@ for script, log_prefix in steps:
         command = f"python -u {script} -t {tumor_type} -s {threshold} -r {rep} -m {marker_type} -l {cohort} -a {method} -g {group} -p {purity} > {log_file}"
     commands[log_prefix] = command
 
-# 过滤不需要的步骤
+# Filter steps to skip
 filtered_commands = {k: v for k, v in commands.items() if k not in exceptstep}
 
-# 执行命令
+# Execute commands
 def execute_command(command, desc):
     try:
         logger.info(f"Executing: {desc} → {command}")
@@ -100,13 +101,13 @@ def execute_commands(commands, desc):
                 logger.error(f"Error in {desc}: {e}")
                 pbar.update(1)
 
-# 执行 step0
+# Execute step0
 if "step0" not in exceptstep:
     execute_command(commands["step0"], "Step0")
 else:
     logger.info("Skipping Step0")
 
-# 并发执行 para1 和 para2
+# Run para1 and para2 in parallel
 para1 = [commands[k] for k in ["step1", "step2", "step3", "step4"] if k in filtered_commands]
 para2 = [commands[k] for k in ["step5", "step6"] if k in filtered_commands]
 
@@ -118,7 +119,7 @@ with ThreadPoolExecutor(max_workers=4) as executor:
     for future in as_completed(futures):
         future.result()
 
-# 串行执行 para3
+# Run para3 sequentially
 para3 = [commands[k] for k in ["step7", "step8"] if k in filtered_commands]
 execute_commands(para3, "Executing para3")
 
