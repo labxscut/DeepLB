@@ -229,11 +229,7 @@ Scripts/Part3.ResTran_model_training/
 ├── ResTran.sh
 Result/3.ResTran_results
 ├── train_result
-│   └── lihc-PH
-│       ├── 1_0.4
 └── test_result
-  └── lihc-PH
-    ├── 1_0.4
 ``` 
 
 # Use
