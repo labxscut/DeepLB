@@ -2,11 +2,15 @@
 ## Overview
 In this study, we introduce our novel deep learning model, DeepLB, developed for early cancer detection through liquid biopsy. This model utilizes pseudo-fragment data generated from 450K methylation array data of tumor tissues, alongside cfDNA whole-genome bisulfite sequencing (WGBS) data from healthy donors, to enhance diagnostic capabilities. DeepLB consists of four key modules: feature selection, methylation Microarray-To-Sequence data converter (mMTS), deep learning model (ResTran), and cancer score estimation. We analyzed cancer-specific features from tumor tissue and healthy plasma WGBS data, generating tumor pseudo-fragment data through the mMTS converter. The ResTran model, which integrates residual networks with Transformer architecture, accurately identifies tumor-derived DNA fragments from cfDNA methylation sequencing data. The workflow in DeepLB is illustrated in the figure below.
 
-![Alt text](png1.png)
-*Figure 1: Overview of the DeepLB framework.*
+<div align="center">
+  <img src="png1.png" alt="DeepLB framework overview" width="80%"/>
+  <p><em>Figure 1: Overview of the DeepLB framework.</em></p>
+</div>
 
-![Alt text](png2.png)
-*Figure 2: The computational pipeline of DeepLB.*
+<div align="center">
+  <img src="png2.png" alt="DeepLB computational pipeline" width="80%"/>
+  <p><em>Figure 2: The computational pipeline of DeepLB.</em></p>
+</div>
 
 ## Table of Contents
 - [Overview](#overview)
