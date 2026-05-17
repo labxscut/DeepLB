@@ -1,3 +1,4 @@
+"""Compute risk scores from predicted d-scores."""
 import numpy as np
 import os
 import argparse

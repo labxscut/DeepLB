@@ -1,6 +1,4 @@
-"""
-process tumoronly filter by purity
-"""
+"""Generate tumor-only random runs with purity filtering and data loading."""
 
 import sys
 import os

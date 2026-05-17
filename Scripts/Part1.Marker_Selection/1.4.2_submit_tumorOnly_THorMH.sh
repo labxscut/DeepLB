@@ -1,3 +1,4 @@
+# Summary: Submit tumor-only random-run generation across repeats and purity settings.
 # make dir "paired_v2" before running the follwing command
 # An example of the partition file is below:
 #run_id	test_list	train_list
@@ -19,7 +20,7 @@ while getopts "i:g:t:s:v:n:" opt; do
 	   ;;
 	n) thre_type="$OPTARG"
 	   ;;
-    \?) echo "无效的选项: -$OPTARG" >&2
+	\?) echo "Invalid option: -$OPTARG" >&2
         exit 1
        ;;
   esac

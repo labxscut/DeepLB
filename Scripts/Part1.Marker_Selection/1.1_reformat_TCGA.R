@@ -1,3 +1,4 @@
+# Summary: Reformat TCGA 450K methylation data and compute purity outputs.
 rm(list = ls())  
 #options(stringsAsFactors = F)
 args <- commandArgs(trailingOnly = TRUE)  
@@ -25,7 +26,7 @@ for (type.short in analyze_tumor){
   tumor.profile.filename <- paste(output.dir, tolower(type.short), "_tumor", sep='')
   purity.filename <- paste0(purity.dir, type.short, "_purity.csv")
 
-  # 检查所有文件是否存在且不为空
+  # Check that all output files exist and are non-empty
   if (file.exists(normal.index.filename) && file.size(normal.index.filename) > 0 &&
       file.exists(normal.profile.filename) && file.size(normal.profile.filename) > 0 &&
       file.exists(tumor.index.filename) && file.size(tumor.index.filename) > 0 &&

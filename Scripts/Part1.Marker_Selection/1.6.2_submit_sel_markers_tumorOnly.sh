@@ -1,4 +1,5 @@
 
+# Summary: Run tumor-only marker selection and add complementary bins.
 checkMakeDirectory(){
         echo -e "checking directory: $1"
         if [ ! -e "$1" ]; then
@@ -20,7 +21,7 @@ while getopts "i:g:t:v:c:n:" opt; do
 	   ;;
 	n) thre_type="$OPTARG"
 	   ;;
-    \?) echo "无效的选项: -$OPTARG" >&2
+	\?) echo "Invalid option: -$OPTARG" >&2
         exit 1
        ;;
   esac

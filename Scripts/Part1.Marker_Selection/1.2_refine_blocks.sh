@@ -1,3 +1,4 @@
+# Summary: Add complementary bins to block definitions using genome sizes.
 code_dir=$PWD
 current_path=$1 #DeepLB path /home/yinliang/PROJECT/DeepLB
 public_dir="${current_path}/Predata/reference/"

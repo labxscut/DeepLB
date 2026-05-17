@@ -1,4 +1,5 @@
 #!/bin/bash
+# Summary: Run ResTran training, prediction, and risk scoring per iteration.
 
 while getopts "i:s:l:t:g:m:c:v:u" flag
 do

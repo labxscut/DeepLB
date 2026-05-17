@@ -1,4 +1,5 @@
-"""
+"""Attach beta values to DMR CpG sites for training samples.
+
 Author: Yin Liang
 Date: 10/16/2024
 """
@@ -11,7 +12,7 @@ import argparse
 import env_module
 
 def process_cpg_sites(input_file, beta_file, output_file):
-    # 读取 BED 文件，构建区间字典
+    # Read BED file and build an interval map
     bed_intervals = {}
     with open(beta_file, "r") as bed:
         for line in bed:
@@ -24,13 +25,13 @@ def process_cpg_sites(input_file, beta_file, output_file):
             )
             bed_intervals[(chrom, start, end)] = value
 
-    # 处理输入文件中的 CpG 位点
+    # Process CpG sites in the input file
     with open(input_file, "r") as cpg_file, open(output_file, "w") as output:
         for line in cpg_file:
             fields = line.strip().split()
             chrom, start, end = fields[0], int(fields[1]), int(fields[2])
 
-            # 检查 CpG 位点是否在任何区间内
+            # Check whether the CpG site falls within any interval
 
             for interval, value in bed_intervals.items():
                 if chrom == interval[0] and start >= interval[1] and end <= interval[2]:
@@ -43,7 +44,7 @@ parser = argparse.ArgumentParser(description='Parameters for threshold/tumor typ
 parser.add_argument('-t', '--tumor', help='Add the tumor type') #"lihc" "paad" "stad" "brca"
 parser.add_argument('-s', '--threshold',help='Subtract the numbers') #"0.15" "0.25"
 parser.add_argument('-g', '--group',  help='Divide the numbers')#"allsample" " onlylow" "onlyhigh"
-parser.add_argument('-a', '--approach', help='Divide the numbers') #method :"paied" or "tumoronly",默认paired不加任何标签
+parser.add_argument('-a', '--approach', help='Divide the numbers') # method: "paired" or "tumoronly"; default paired without extra tag
 parser.add_argument('-r', '--rep', help='Divide the numbers') #total list num
 parser.add_argument('-l', '--cohort', help='Divide the numbers') #list
 parser.add_argument('-m', '--marker', help='Marker type')#"hyper" "hypo"

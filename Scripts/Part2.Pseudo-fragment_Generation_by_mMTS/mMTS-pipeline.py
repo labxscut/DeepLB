@@ -1,4 +1,5 @@
-"""
+"""Run the mMTS pseudo-fragment pipeline (legacy version).
+
 a standard pipeline for generating Pseudo-fragment by mMTS
 Author: Yin Liang
 Date: 10/16/2024
@@ -104,7 +105,7 @@ for script, log_prefix in steps:
         step_command = f"python -u {script} -t {tumor_type} -s {threshold} -r {rep} -m {marker_type} -l {cohort} -a {method} -g {group} -D {D} -L {L} -p {purity} > {log_file}"
     else:
         step_command = f"python -u {script} -t {tumor_type} -s {threshold} -r {rep} -m {marker_type} -l {cohort} -a {method} -g {group} -p {purity} > {log_file}"
-    exec(f"{log_prefix} = '{step_command}'") #创建变量
+    exec(f"{log_prefix} = '{step_command}'") # create variables
 
 para1 = [step1,step2,step3,step4]
 para2 = [step5,step6]
@@ -156,10 +157,10 @@ def execute_commands(commands, desc):
                 command_result = subprocess.Popen(command, shell=True)
                 command_result.wait()
                 print(f"!! executed successfully.")
-                pbar.update(1)  # 更新进度条
+                pbar.update(1)  # update progress bar
             except subprocess.CalledProcessError as e:
                 print(f"Error executing {command}: {e}")
-                pbar.update(1)  # 更新进度条
+                pbar.update(1)  # update progress bar
 
 
 #(0)prepare all needed file
@@ -176,16 +177,16 @@ except subprocess.CalledProcessError as e:
 
 
 
-# 创建线程池，同时执行para1和para2中的命令
+# Create a thread pool to run para1 and para2
 with ThreadPoolExecutor() as executor:
     future1 = executor.submit(execute_commands, para1, "Executing para1")
     future2 = executor.submit(execute_commands, para2, "Executing para2")
 
-    # 等待para1和para2中的命令执行完成
+    # Wait for para1 and para2 to finish
     future1.result()
     future2.result()
 
-# 执行para3中的命令
+# Execute para3 commands
 execute_commands(para3, "Executing para3")
 
 end_time = time.time()

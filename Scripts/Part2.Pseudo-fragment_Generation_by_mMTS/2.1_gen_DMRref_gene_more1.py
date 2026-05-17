@@ -1,4 +1,5 @@
-"""
+"""Extract DMR regions into reference fasta files.
+
 Author: Yin Liang
 Date: 10/16/2024
 """
@@ -16,7 +17,7 @@ parser.add_argument('-t', '--tumor', help='Add the tumor type') #"lihc" "paad" "
 parser.add_argument('-s', '--threshold',help='Subtract the numbers') #"0.15" "0.25"
 parser.add_argument('-m', '--marker', help='Marker type')#"hyper" "hypo"
 parser.add_argument('-g', '--group',  help='Divide the numbers')#"TH" "MH" "PH"
-parser.add_argument('-a', '--approach',  help='Divide the numbers') #method :"paied" or "tumoronly",默认paired不加任何标签
+parser.add_argument('-a', '--approach',  help='Divide the numbers') # method: "paired" or "tumoronly"; default paired without extra tag
 parser.add_argument('-r', '--rep',  help='Divide the numbers') #total list num
 parser.add_argument('-l', '--cohort', help='Divide the numbers') #list
 parser.add_argument('-p', '--purity',  nargs='?', default=None,help='for tumor purity')
@@ -39,10 +40,10 @@ out_dir = root_dir + env_module.preprocess_folder + "DMR_ref_fasta/" + marker_ty
 os.makedirs(out_dir, exist_ok=True)
 
 def extract_fasta_regions(input_fasta, input_bed, output_fasta):
-    # 读取参考基因组fasta文件
+    # Read reference genome fasta
     sequences = SeqIO.to_dict(SeqIO.parse(input_fasta, "fasta"))
 
-    # 打开输出fasta文件
+    # Prepare output fasta records
     output_records = []
 
     with open(input_bed, "r") as bed_file:
@@ -50,15 +51,15 @@ def extract_fasta_regions(input_fasta, input_bed, output_fasta):
             fields = line.strip().split("\t")
             chrom = fields[0]
             start = int(fields[1])
-            end = int(fields[2]) + 1  # 增加1位碱基在后续判断CG位点
-            region_name = f"{chrom}:{start}-{end}"  # 使用bed文件的第一列和第二列内容作为备注
+            end = int(fields[2]) + 1  # Add 1 bp for downstream CG site check
+            region_name = f"{chrom}:{start}-{end}"  # Use BED chrom/start/end as record ID
 
             if chrom in sequences:
                 sequence = sequences[chrom][start:end]
                 record = SeqRecord(sequence.seq, id=region_name, description="")
                 output_records.append(record)
 
-    # 写入输出fasta文件
+    # Write output fasta
     SeqIO.write(output_records, output_fasta, "fasta")
 
 for i in range(cohort, rep):

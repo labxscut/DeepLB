@@ -1,4 +1,5 @@
-"""
+"""Train the ResTran model on simulated reads and save results.
+
 update:20241023
 Yin Liang; ZhanYu Liang
 """
@@ -236,7 +237,7 @@ if __name__ == '__main__':
         tf.config.experimental.set_memory_growth(gpu, True)
     model = res_transformer()
 
-    #tf2.2代码
+    # TF 2.2 version
     #sgd = optimizers.SGD(lr=0.05, decay=1e-6, momentum=0.9, nesterov=True)
 
     #tf2.16

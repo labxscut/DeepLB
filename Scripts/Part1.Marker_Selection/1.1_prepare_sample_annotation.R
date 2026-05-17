@@ -1,4 +1,5 @@
 #!/usr/bin/env Rscript
+# Summary: Build or append all_samples_annotation.txt from metadata and sample lists.
 # This file for generating all_samples_annotation.txt, while existed, new information will be appended
 # Get command line arguments
 args <- commandArgs(trailingOnly = TRUE)

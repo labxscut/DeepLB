@@ -1,3 +1,4 @@
+"""Select markers for the tumor-only method using difference criteria."""
 import sys
 import os
 import re

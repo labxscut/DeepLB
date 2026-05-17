@@ -1,4 +1,5 @@
-"""
+"""Convert simulated reads to training format and filter chrX.
+
 Author: Yin Liang
 Date: 10/16/2024
 """

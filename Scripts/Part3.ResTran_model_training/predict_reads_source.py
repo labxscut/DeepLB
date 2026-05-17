@@ -1,3 +1,4 @@
+"""Predict read-level scores using a trained ResTran model."""
 import numpy as np
 import random
 import os

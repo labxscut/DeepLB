@@ -1,4 +1,5 @@
-"""
+"""Simulate methylation on DMR reads using beta values.
+
 Author: Yin Liang
 Date: 10/16/2024
 """

@@ -1,8 +1,9 @@
 #!/bin/bash
+# Summary: Run DeepLB part1/2/3 pipeline steps with CLI parameters and dry-run support.
 # Parameters
 DRY_RUN=false
 # Part1 parameters
-ROOT_DIR="" # /home/yinliang/PROJECT/DeepLB
+ROOT_DIR="" # /path/to/DeepLB
 TUMOR="" # lihc brca stad
 GROUP="" # TH MH PH
 SUBSAMPLE="" # TH:top30 top50 MH:sub30 sub50
@@ -41,7 +42,7 @@ usage() {
     echo "  --generation_threshold, -q <THRESHOLD> : Generation threshold (selected from marker selection threshold)"
     echo "  --fragment_length, -l <LENGTH>  : Fragment length for pseudo-fragment generation"
     echo "  --meta, -x <FILE>               : Meta file path"
-    echo "  --dry_run, -d|-n                : Enable dry-run mode"
+    echo "  --dry_run, -d                   : Enable dry-run mode"
     echo "  --help, -h                      : Display this help message"
     exit 1
 }
