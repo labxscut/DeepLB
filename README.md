@@ -17,7 +17,6 @@ In this study, we introduce our novel deep learning model, DeepLB, developed for
 - [Installation](#installation)
 - [Code organization by language](#code-organization-by-language)
 - [Prepare data](#prepare-data)
-  - [Warning!!](#warning)
 - [Part1: Marker Selection](#part1-marker-selection)
 - [Part2: Pseudo-fragment Generation by mMTS](#part2-pseudo-fragment-generation-by-mmts)
 - [Part3: Deep Learning (ResTran) model training](#part3-deep-learning-restran-model-training)
@@ -102,7 +101,6 @@ Predata/
 └── WGBS 
 ```
 
-### Warning!!
 Before use mMTS, please check the env_module.py and make sure each file path is right
 
 ## Code organization by language
